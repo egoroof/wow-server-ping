@@ -1,0 +1,19 @@
+{
+  "name": "wow-server-ping",
+  "version": "1.0.0",
+  "description": "",
+  "main": "",
+  "scripts": {
+    "lint": "eslint src --ext js,mjs",
+    "start": "node src/ping.mjs",
+    "test": "npm run prettier:check && npm run lint",
+    "prettier:write": "prettier --write .",
+    "prettier:check": "prettier --check ."
+  },
+  "author": "egoroof",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5"
+  }
+}

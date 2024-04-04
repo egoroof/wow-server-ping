@@ -1,22 +1,3 @@
-export function mean(values) {
-  if (values.length === 0) {
-    return 0;
-  }
-  values.sort((a, b) => a - b); // todo не мутировать входящий массив
-  const meanIndex = Math.floor(values.length / 2);
-
-  if (isOdd(values.length)) {
-    return values[meanIndex];
-  } else {
-    // чётное количество элементов - находим avg от двух посередине
-    const leftIndex = meanIndex - 1;
-    const left = values[leftIndex];
-    const right = values[meanIndex];
-
-    return Math.round((left + right) / 2);
-  }
-}
-
 export function avg(values) {
   if (values.length === 0) {
     return 0;
@@ -45,9 +26,5 @@ export function jitter(values) {
     }
   });
 
-  return max - min;
-}
-
-function isOdd(number) {
-  return Boolean(number & 1);
+  return Math.round((max - min) / 2);
 }

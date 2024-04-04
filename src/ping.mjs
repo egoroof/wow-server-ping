@@ -1,7 +1,7 @@
 import { createConnection } from 'node:net';
 import { SMSG_AUTH_CHALLENGE } from './opcodes.mjs';
 import { servers } from './servers.mjs';
-import { mean, avg, jitter } from './math.mjs';
+import { avg, jitter } from './math.mjs';
 
 const params = {
   n: 4, // REQUEST_COUNT
@@ -20,7 +20,8 @@ process.argv.forEach((elem) => {
 const REQUEST_COUNT = params.n;
 const TIMEOUT = params.t;
 
-console.log(`Requests limit is ${REQUEST_COUNT}, Timeout is ${TIMEOUT} ms`);
+console.log(`Requests limit ${REQUEST_COUNT}`);
+console.log(`Timeout ${TIMEOUT} ms`);
 
 process.on('SIGINT', () => {
   printResults();
@@ -28,8 +29,7 @@ process.on('SIGINT', () => {
 });
 
 for (const server of servers) {
-  server.tcpOpenDurationResults = [];
-  server.serverResponseDurationResults = [];
+  server.responseDurations = [];
   server.errors = 0;
   server.timeouts = 0;
 }
@@ -41,11 +41,8 @@ for (let i = 0; i < REQUEST_COUNT; i++) {
     const res = await openConnection(server.host, server.port);
 
     if (res.status === 'success') {
-      console.log(
-        `${server.name} ${res.tcpOpenDuration} ms / ${res.serverResponseDuration} ms`,
-      );
-      server.tcpOpenDurationResults.push(res.tcpOpenDuration);
-      server.serverResponseDurationResults.push(res.serverResponseDuration);
+      console.log(`${server.name} ${res.responseDuration} ms`);
+      server.responseDurations.push(res.responseDuration);
     } else if (res.status === 'timeout') {
       console.log(`${server.name} timeout`);
       server.timeouts++;
@@ -59,47 +56,63 @@ for (let i = 0; i < REQUEST_COUNT; i++) {
 printResults();
 
 function printResults() {
-  const tcpTable = [];
   const serverTable = [];
+  let maxNameLength = 0;
 
   for (const server of servers) {
-    tcpTable.push({
-      server: server.name,
-      avg: avg(server.tcpOpenDurationResults),
-      mean: mean(server.tcpOpenDurationResults),
-      jitter: jitter(server.tcpOpenDurationResults),
-      timeouts: server.timeouts,
-      errors: server.errors,
-    });
+    if (server.name.length > maxNameLength) {
+      maxNameLength = server.name.length;
+    }
     serverTable.push({
-      server: server.name,
-      avg: avg(server.serverResponseDurationResults),
-      mean: mean(server.serverResponseDurationResults),
-      jitter: jitter(server.serverResponseDurationResults),
+      name: server.name,
+      avg: avg(server.responseDurations),
+      jitter: jitter(server.responseDurations),
       timeouts: server.timeouts,
       errors: server.errors,
     });
   }
-  tcpTable.sort((a, b) => a.avg - b.avg);
-  serverTable.sort((a, b) => a.avg - b.avg);
+  serverTable.sort((a, b) => {
+    if (a.errors - b.errors !== 0) {
+      return a.errors - b.errors;
+    }
+    if (a.timeouts - b.timeouts !== 0) {
+      return a.timeouts - b.timeouts;
+    }
+    return a.avg - b.avg;
+  });
 
   console.log('');
-  console.log(`TCP open time, ms`);
-  console.table(tcpTable);
+  console.log(`Response time, ms`);
 
-  console.log('');
-  console.log(`Server response time, ms`);
-  console.table(serverTable);
+  for (const server of serverTable) {
+    let timeoutStr = '';
+    if (server.timeouts > 0) {
+      timeoutStr = `; ${server.timeouts} timeouts`;
+    }
+    let errorStr = '';
+    if (server.errors > 0) {
+      errorStr = `; ${server.errors} errors`;
+    }
+    let statsStr = 'unavailable';
+    if (server.avg > 0) {
+      statsStr = `${server.avg} ± ${server.jitter}`;
+    }
+    let extraSpaces = '';
+    if (maxNameLength - server.name.length > 0) {
+      extraSpaces = ' '.repeat(maxNameLength - server.name.length);
+    }
+    console.log(
+      `${server.name}  ${extraSpaces}${statsStr}${timeoutStr}${errorStr}`,
+    );
+  }
 }
 
 function openConnection(host, port) {
   return new Promise((resolve) => {
-    const tcpOpenStartTime = performance.now();
     let serverResponseStartTime = 0;
     const res = {
       status: 'unknown',
-      tcpOpenDuration: 0,
-      serverResponseDuration: 0,
+      responseDuration: 0,
     };
     const socket = createConnection(
       {
@@ -109,7 +122,6 @@ function openConnection(host, port) {
       },
       () => {
         serverResponseStartTime = performance.now();
-        res.tcpOpenDuration = Math.round(performance.now() - tcpOpenStartTime);
 
         // таймаут до получения ответа сервера
         setTimeout(() => {
@@ -128,7 +140,7 @@ function openConnection(host, port) {
       const opcode = serverPacket.readUInt16LE(2);
       if (opcode === SMSG_AUTH_CHALLENGE) {
         res.status = 'success';
-        res.serverResponseDuration = Math.round(
+        res.responseDuration = Math.round(
           performance.now() - serverResponseStartTime,
         );
       } else {

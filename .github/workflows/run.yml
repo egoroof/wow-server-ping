@@ -12,4 +12,4 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm test
-      - run: npm start
+      - run: node src/ping.mjs -n=2 -t=500

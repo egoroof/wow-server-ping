@@ -4,7 +4,7 @@
   "description": "",
   "main": "",
   "scripts": {
-    "lint": "eslint src --ext js,mjs",
+    "lint": "eslint src",
     "start": "node src/ping.mjs",
     "test": "npm run prettier:check && npm run lint",
     "prettier:write": "prettier --write .",
@@ -13,7 +13,9 @@
   "author": "egoroof",
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^8.57.0",
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
     "prettier": "^3.2.5"
   }
 }

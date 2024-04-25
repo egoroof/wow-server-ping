@@ -4,7 +4,7 @@ import { servers } from './servers.mjs';
 import { avg, jitter } from './math.mjs';
 
 const params = {
-  n: 4, // REQUEST_COUNT
+  n: 6, // REQUEST_COUNT
   t: 1000, // TIMEOUT
 };
 process.argv.forEach((elem) => {
@@ -37,20 +37,26 @@ for (const server of servers) {
 for (let i = 0; i < REQUEST_COUNT; i++) {
   console.log('');
   console.log(`Request # ${i + 1}`);
-  for (const server of servers) {
-    const res = await openConnection(server.host, server.port);
 
-    if (res.status === 'success') {
-      console.log(`${server.name} ${res.responseDuration} ms`);
-      server.responseDurations.push(res.responseDuration);
-    } else if (res.status === 'timeout') {
-      console.log(`${server.name} timeout`);
-      server.timeouts++;
-    } else {
-      console.log(`${server.name} ${res.status}`);
-      server.errors++;
-    }
+  const promises = [];
+  for (const server of servers) {
+    promises.push(
+      openConnection(server.host, server.port).then((res) => {
+        if (res.status === 'success') {
+          console.log(`${server.name} ${res.responseDuration} ms`);
+          server.responseDurations.push(res.responseDuration);
+        } else if (res.status === 'timeout') {
+          console.log(`${server.name} timeout`);
+          server.timeouts++;
+        } else {
+          console.log(`${server.name} ${res.status}`);
+          server.errors++;
+        }
+      }),
+    );
   }
+
+  await Promise.all(promises);
 }
 
 printResults();

@@ -44,43 +44,6 @@ var smsgAuthResponseEnc = []byte{125, 91, 192, 37, 13}
 
 // Ping WoW server.
 // Deals with servers behind proxy.
-//
-// Requests scheme behind proxy:
-// 1. You -> SYN -> Proxy
-// 2. Proxy -> SYN-ACK -> You
-// 3. You -> ACK -> Proxy
-// 4. Proxy -> SYN -> Server
-// 5. Server -> SYN-ACK -> Proxy
-// 6. Proxy -> ACK -> Server
-// 7. Server -> smsgAuthChallenge -> Proxy -> You
-// 8. You -> cmsgAuthSession -> Proxy -> Server
-// 9. Server -> smsgAuthResponse -> Proxy -> You
-//
-// Ping
-// Connect: 1 - 2
-// Server : 8 - 9
-//
-// Timeouts (helpful for losses debug)
-// Connect  : 1 - 2 (you - proxy)
-// ServerMsg: 3 - 7 (proxy - server)
-// Transfer : 8 - 9 (you - server)
-//
-// Requests scheme without proxy:
-// 1. You -> SYN -> Server
-// 2. Server -> SYN-ACK -> You
-// 3. You -> ACK -> Server
-// 4. Server -> smsgAuthChallenge -> You
-// 5. You -> cmsgAuthSession -> Server
-// 6. Server -> smsgAuthResponse -> You
-//
-// Ping
-// Connect: 1 - 2
-// Server : 5 - 6
-//
-// Timeouts (helpful for losses debug)
-// Connect  : 1 - 2
-// ServerMsg: 3 - 4
-// Transfer : 5 - 6
 func PingWowServer(
 	name, group, address string,
 	timeout time.Duration,

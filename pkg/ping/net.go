@@ -191,7 +191,7 @@ func PingWowServer(
 		respose <- ServerResponse{
 			Name:  name,
 			Group: group,
-			Error: os.ErrDeadlineExceeded,
+			Error: ErrTransferTimeout,
 		}
 		return
 	}

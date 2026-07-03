@@ -224,7 +224,6 @@ func (w *wowClient) readAuthLogonChallengeServer() error {
 	securityFlag := buf[cursor]
 	cursor++
 
-	// todo check this actually works
 	if securityFlag != 0 {
 		return fmt.Errorf("2fa is not supported")
 	}

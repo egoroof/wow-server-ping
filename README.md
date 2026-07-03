@@ -9,7 +9,7 @@ Ping tool for World of Warcraft 335a servers. Can correctly measure ping with se
 
 Definitions:
 
-- `Conn` - mean connect time to the first server (can be proxy) in milliseconds
+- `Conn` - mean connect time to game server in milliseconds
 - `Ping` - mean ping time to game server in milliseconds
 - `±` - mean deviation of `Conn` and `Ping`
 - `T1` - timeouts during initial TCP connection

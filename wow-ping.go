@@ -29,6 +29,12 @@ var promRespTime = ping.PrometheusMetric{
 	Type:       "gauge",
 	LabelNames: []string{"server", "group"},
 }
+var promConnTime = ping.PrometheusMetric{
+	Name:       "wow_server_connect_time_ms",
+	Help:       "WoW server connect time in ms",
+	Type:       "gauge",
+	LabelNames: []string{"server", "group"},
+}
 var promRespTimeout = ping.PrometheusMetric{
 	Name:       "wow_server_timeout_count",
 	Help:       "WoW server timeout count",
@@ -79,10 +85,12 @@ func recordMetrics(servers []ping.Server) {
 
 			if resp.Error == nil {
 				promRespTime.SetValue([]string{resp.Name, resp.Group}, resp.PingDurationMs)
+				promConnTime.SetValue([]string{resp.Name, resp.Group}, resp.ConnectDurationMs)
 				stat.PingDurations = append(stat.PingDurations, resp.PingDurationMs)
 				stat.ConnectDurations = append(stat.ConnectDurations, resp.ConnectDurationMs)
 			} else {
 				promRespTime.Delete([]string{resp.Name, resp.Group})
+				promConnTime.Delete([]string{resp.Name, resp.Group})
 
 				if errors.Is(resp.Error, ping.ErrConnectTimeout) {
 					promRespTimeout.AddValue([]string{resp.Name, resp.Group, promTypeConnectTimeout}, 1)
@@ -186,6 +194,7 @@ func main() {
 		metrics := []*ping.PrometheusMetric{
 			&promRespErr,
 			&promRespTime,
+			&promConnTime,
 			&promRespTimeout,
 		}
 		http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {

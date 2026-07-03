@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 )
@@ -55,11 +56,27 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 	fmt.Fprintf(w, "Realm\tConn\t±\tPing\t±\tT1\tT2\tT3\tE\n")
 	for _, group := range groups {
 		for _, stats := range serverTableGroups[group] {
+			t1 := " "
+			t2 := " "
+			t3 := " "
+			e := " "
+			if stats.Timeouts1 > 0 {
+				t1 = strconv.Itoa(stats.Timeouts1)
+			}
+			if stats.Timeouts2 > 0 {
+				t2 = strconv.Itoa(stats.Timeouts2)
+			}
+			if stats.Timeouts3 > 0 {
+				t3 = strconv.Itoa(stats.Timeouts3)
+			}
+			if stats.Errors > 0 {
+				e = strconv.Itoa(stats.Errors)
+			}
 			if stats.PingAvg == 0 {
 				fmt.Fprintf(
 					w, "%v\tunavailable\t\t\t\t%v\t%v\t%v\t%v\n",
 					stats.ServerName,
-					stats.Timeouts1, stats.Timeouts2, stats.Timeouts3, stats.Errors,
+					t1, t2, t3, e,
 				)
 				continue
 			}
@@ -67,7 +84,7 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 				w, "%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
 				stats.ServerName,
 				stats.ConnectAvg, stats.ConnectJitter, stats.PingAvg, stats.PingJitter,
-				stats.Timeouts1, stats.Timeouts2, stats.Timeouts3, stats.Errors,
+				t1, t2, t3, e,
 			)
 		}
 		w.Flush()

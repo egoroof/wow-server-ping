@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -34,7 +33,7 @@ var promRespTimeout = ping.PrometheusMetric{
 	Name:       "wow_server_timeout_count",
 	Help:       "WoW server timeout count",
 	Type:       "counter",
-	LabelNames: []string{"server", "group"},
+	LabelNames: []string{"server", "group", "type"},
 }
 var promRespErr = ping.PrometheusMetric{
 	Name:       "wow_server_error_count",
@@ -43,11 +42,17 @@ var promRespErr = ping.PrometheusMetric{
 	LabelNames: []string{"server", "group"},
 }
 
+const promTypeConnectTimeout = "connect"
+const promTypeServerMsgTimeout = "serverMsg"
+const promTypeTransferTimeout = "transfer"
+
 func recordMetrics(servers []ping.Server) {
 	responseChan := make(chan ping.ServerResponse)
 
 	for _, server := range servers {
-		promRespTimeout.SetValue([]string{server.Name, server.Group}, 0)
+		promRespTimeout.SetValue([]string{server.Name, server.Group, promTypeConnectTimeout}, 0)
+		promRespTimeout.SetValue([]string{server.Name, server.Group, promTypeServerMsgTimeout}, 0)
+		promRespTimeout.SetValue([]string{server.Name, server.Group, promTypeTransferTimeout}, 0)
 		promRespErr.SetValue([]string{server.Name, server.Group}, 0)
 	}
 
@@ -56,7 +61,7 @@ func recordMetrics(servers []ping.Server) {
 	statsCount := 0
 	for {
 		for _, server := range servers {
-			go ping.OpenConnection(
+			go ping.PingWowServer(
 				server.Name, server.Group, server.Address, *PING_TIMEOUT, responseChan,
 			)
 		}
@@ -73,13 +78,21 @@ func recordMetrics(servers []ping.Server) {
 			}
 
 			if resp.Error == nil {
-				promRespTime.SetValue([]string{resp.Name, resp.Group}, resp.Duration)
-				stat.ResponseDurations = append(stat.ResponseDurations, resp.Duration)
+				promRespTime.SetValue([]string{resp.Name, resp.Group}, resp.PingDurationMs)
+				stat.PingDurations = append(stat.PingDurations, resp.PingDurationMs)
+				stat.ConnectDurations = append(stat.ConnectDurations, resp.ConnectDurationMs)
 			} else {
 				promRespTime.Delete([]string{resp.Name, resp.Group})
-				if errors.Is(resp.Error, context.DeadlineExceeded) || errors.Is(resp.Error, os.ErrDeadlineExceeded) {
-					promRespTimeout.AddValue([]string{resp.Name, resp.Group}, 1)
-					stat.Timeouts++
+
+				if errors.Is(resp.Error, ping.ErrConnectTimeout) {
+					promRespTimeout.AddValue([]string{resp.Name, resp.Group, promTypeConnectTimeout}, 1)
+					stat.Timeouts1++
+				} else if errors.Is(resp.Error, ping.ErrServerMsgTimeout) {
+					promRespTimeout.AddValue([]string{resp.Name, resp.Group, promTypeServerMsgTimeout}, 1)
+					stat.Timeouts2++
+				} else if errors.Is(resp.Error, ping.ErrTransferTimeout) {
+					promRespTimeout.AddValue([]string{resp.Name, resp.Group, promTypeTransferTimeout}, 1)
+					stat.Timeouts3++
 				} else {
 					fmt.Printf("%v %v\n", resp.Name, resp.Error)
 					promRespErr.AddValue([]string{resp.Name, resp.Group}, 1)

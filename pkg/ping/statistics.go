@@ -9,14 +9,20 @@ import (
 )
 
 type Statistics struct {
-	ServerName        string
-	ServerGroup       string
-	ResponseDurations []int
-	Errors            int
-	Timeouts          int
+	ServerName       string
+	ServerGroup      string
+	PingDurations    []int
+	ConnectDurations []int
+	Errors           int
+	Timeouts1        int
+	Timeouts2        int
+	Timeouts3        int
 
-	Avg    int
-	Jitter int
+	PingAvg    int
+	ConnectAvg int
+
+	PingJitter    int
+	ConnectJitter int
 }
 
 func PrintResults(statistics map[string]Statistics, groupsOrder string) {
@@ -25,8 +31,10 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 
 	serverTableGroups := make(map[string][]Statistics)
 	for _, stats := range statistics {
-		stats.Avg = Avg(stats.ResponseDurations)
-		stats.Jitter = Jitter(stats.ResponseDurations)
+		stats.PingAvg = Avg(stats.PingDurations)
+		stats.PingJitter = Jitter(stats.PingDurations)
+		stats.ConnectAvg = Avg(stats.ConnectDurations)
+		stats.ConnectJitter = Jitter(stats.ConnectDurations)
 
 		serverTableGroups[stats.ServerGroup] = append(serverTableGroups[stats.ServerGroup], stats)
 	}
@@ -35,28 +43,32 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 			if a.Errors-b.Errors != 0 {
 				return a.Errors - b.Errors
 			}
-			if a.Timeouts-b.Timeouts != 0 {
-				return a.Timeouts - b.Timeouts
+			aTimeouts := a.Timeouts1 + a.Timeouts2 + a.Timeouts3
+			bTimeouts := b.Timeouts1 + b.Timeouts2 + b.Timeouts3
+			if aTimeouts-bTimeouts != 0 {
+				return aTimeouts - bTimeouts
 			}
-			return a.Avg - b.Avg
+			return a.PingAvg - b.PingAvg
 		})
 	}
 
+	fmt.Fprintf(w, "Realm\tConn\t±\tPing\t±\tT1\tT2\tT3\tE\n")
 	for _, group := range groups {
 		for _, stats := range serverTableGroups[group] {
-			timeoutStr := ""
-			if stats.Timeouts > 0 {
-				timeoutStr = fmt.Sprintf("%v timeouts", stats.Timeouts)
+			if stats.PingAvg == 0 {
+				fmt.Fprintf(
+					w, "%v\tunavailable\t\t\t\t%v\t%v\t%v\t%v\n",
+					stats.ServerName,
+					stats.Timeouts1, stats.Timeouts2, stats.Timeouts3, stats.Errors,
+				)
+				continue
 			}
-			errorStr := ""
-			if stats.Errors > 0 {
-				errorStr = fmt.Sprintf("%v errors", stats.Errors)
-			}
-			statsStr := "unavailable"
-			if stats.Avg > 0 {
-				statsStr = fmt.Sprintf("%v\t± %v", stats.Avg, stats.Jitter)
-			}
-			fmt.Fprintf(w, "%v\t%v\t%v\t%v\n", stats.ServerName, statsStr, timeoutStr, errorStr)
+			fmt.Fprintf(
+				w, "%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
+				stats.ServerName,
+				stats.ConnectAvg, stats.ConnectJitter, stats.PingAvg, stats.PingJitter,
+				stats.Timeouts1, stats.Timeouts2, stats.Timeouts3, stats.Errors,
+			)
 		}
 		w.Flush()
 		if len(serverTableGroups) > 1 {

@@ -67,6 +67,16 @@ func PingWowServer(
 	connectDuration := time.Since(startTime)
 	defer conn.Close()
 
+	// OS can goes sleep and deadline on read not happen
+	if connectDuration > timeout {
+		respose <- ServerResponse{
+			Name:  name,
+			Group: group,
+			Error: ErrConnectTimeout,
+		}
+		return
+	}
+
 	buf := make([]byte, 64)
 	conn.SetDeadline(time.Now().Add(timeout))
 	bytesRead, err := conn.Read(buf)

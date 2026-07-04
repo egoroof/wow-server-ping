@@ -65,7 +65,9 @@ func recordMetrics(servers []ping.Server) {
 	statsLogTime := time.Now()
 	statistics := make(map[string]ping.Statistics)
 	statsCount := 0
+	requestCount := 0
 	for {
+		requestCount++
 		for _, server := range servers {
 			go ping.PingWowServer(
 				server.Name, server.Group, server.Address, *PING_TIMEOUT, responseChan,
@@ -113,14 +115,16 @@ func recordMetrics(servers []ping.Server) {
 
 		if time.Now().After(statsLogTime.Add(*STATS_INTERVAL)) {
 			fmt.Printf(
-				"\n%v to %v\n",
+				"\n%v to %v sent %v requests\n",
 				statsLogTime.Format(time.TimeOnly),
 				time.Now().Format(time.TimeOnly),
+				requestCount,
 			)
 			ping.PrintResults(statistics, *SERVER_CONFIG)
 			statsLogTime = time.Now()
 			statistics = make(map[string]ping.Statistics)
 			statsCount++
+			requestCount = 0
 
 			if *STATS_COUNT == statsCount {
 				fmt.Println("Exiting due to stats count flag is set and reached")

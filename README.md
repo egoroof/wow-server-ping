@@ -11,7 +11,7 @@ Definitions:
 
 - `Conn` - mean connect time to game server in milliseconds
 - `Ping` - mean ping time to game server in milliseconds
-- `±` - mean deviation of `Conn` and `Ping`
+- `±` - mean absolute deviation of `Conn` and `Ping`
 - `T1` - timeouts during initial TCP connection
 - `T2` - timeouts after `T1` and until receiving first server message
 - `T3` - timeouts after `T2`, during sending a message to the server and until server connection close

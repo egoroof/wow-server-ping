@@ -4,7 +4,7 @@ import (
 	"math"
 )
 
-func Avg(values []int) int {
+func Mean(values []int) int {
 	if len(values) == 0 {
 		return 0
 	}
@@ -17,21 +17,14 @@ func Avg(values []int) int {
 	return sum / len(values)
 }
 
-func Jitter(values []int) int {
-	if len(values) == 0 {
-		return 0
+// Mean absolute deviation (not madness)
+func MAD(values []int) int {
+	mean := Mean(values)
+
+	sum := 0.0
+	for _, elem := range values {
+		sum += math.Abs(float64(elem - mean))
 	}
 
-	min := math.MaxInt
-	max := 0
-	for _, value := range values {
-		if min > value {
-			min = value
-		}
-		if max < value {
-			max = value
-		}
-	}
-
-	return (max - min) / 2
+	return int(sum) / len(values)
 }

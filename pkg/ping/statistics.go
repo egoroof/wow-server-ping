@@ -19,11 +19,11 @@ type Statistics struct {
 	Timeouts2        int
 	Timeouts3        int
 
-	PingAvg    int
-	ConnectAvg int
+	PingMean    int
+	ConnectMean int
 
-	PingJitter    int
-	ConnectJitter int
+	PingMAD    int
+	ConnectMAD int
 }
 
 func PrintResults(statistics map[string]Statistics, groupsOrder string) {
@@ -32,10 +32,11 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 
 	serverTableGroups := make(map[string][]Statistics)
 	for _, stats := range statistics {
-		stats.PingAvg = Avg(stats.PingDurations)
-		stats.PingJitter = Jitter(stats.PingDurations)
-		stats.ConnectAvg = Avg(stats.ConnectDurations)
-		stats.ConnectJitter = Jitter(stats.ConnectDurations)
+		stats.PingMean = Mean(stats.PingDurations)
+		stats.PingMAD = MAD(stats.PingDurations)
+
+		stats.ConnectMean = Mean(stats.ConnectDurations)
+		stats.ConnectMAD = MAD(stats.ConnectDurations)
 
 		serverTableGroups[stats.ServerGroup] = append(serverTableGroups[stats.ServerGroup], stats)
 	}
@@ -49,7 +50,7 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 			if aTimeouts-bTimeouts != 0 {
 				return aTimeouts - bTimeouts
 			}
-			return a.PingAvg - b.PingAvg
+			return a.PingMean - b.PingMean
 		})
 	}
 
@@ -72,7 +73,7 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 			if stats.Errors > 0 {
 				e = strconv.Itoa(stats.Errors)
 			}
-			if stats.PingAvg == 0 {
+			if stats.PingMean == 0 {
 				fmt.Fprintf(
 					w, "%v\tunavailable\t\t\t\t%v\t%v\t%v\t%v\n",
 					stats.ServerName,
@@ -83,7 +84,8 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 			fmt.Fprintf(
 				w, "%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
 				stats.ServerName,
-				stats.ConnectAvg, stats.ConnectJitter, stats.PingAvg, stats.PingJitter,
+				stats.ConnectMean, stats.ConnectMAD,
+				stats.PingMean, stats.PingMAD,
 				t1, t2, t3, e,
 			)
 		}

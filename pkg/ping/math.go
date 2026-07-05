@@ -19,8 +19,11 @@ func Mean(values []int) int {
 
 // Mean absolute deviation (not madness)
 func MAD(values []int) int {
-	mean := Mean(values)
+	if len(values) == 0 {
+		return 0
+	}
 
+	mean := Mean(values)
 	sum := 0.0
 	for _, elem := range values {
 		sum += math.Abs(float64(elem - mean))

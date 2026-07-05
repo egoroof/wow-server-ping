@@ -73,34 +73,48 @@ Windows builds comes with some `.bat` files which you can use or make similar fo
 
 #### Behind proxy
 
-1. You -> establishing TCP connection -> Proxy
-2. Proxy -> establishing TCP connection -> Server
-3. Server -> packet `SMSG_AUTH_CHALLENGE` -> Proxy -> You
-4. You -> packet `CMSG_AUTH_SESSION` -> Proxy -> Server
-5. Server -> packet `SMSG_AUTH_RESPONSE` -> Proxy -> You
+Network requests during single ping process:
 
-Сonnection time (`Conn`) measured from step 1 and server ping (`Ping`) from steps 4 - 5.
+1. You -> TCP SYN -> Proxy
+2. Proxy -> TCP SYN-ACK -> You
+3. You -> TCP ACK -> Proxy
+4. Proxy -> TCP SYN -> Server
+5. Server -> TCP SYN-ACK -> Proxy
+6. Proxy -> TCP ACK -> Server
+7. Server -> packet `SMSG_AUTH_CHALLENGE` -> Proxy -> You
+8. You -> packet `CMSG_PING` -> Proxy -> Server
+9. Server -> TCP FIN -> Proxy -> You
+10. You -> TCP FIN -> Proxy -> Server
+
+Some not important acknowledge requests hidden for simplicity.
+
+Сonnection time (`Conn`) measured from steps 1 - 2 and server ping (`Ping`) from steps 8 - 9.
 
 Timeouts can be helpful for debugging packet losses. There are 3 types of timeouts:
 
-- `T1` - if happen in step 1 (you - proxy)
-- `T2` - if happen in steps 2 - 3 (proxy - server)
-- `T3` - if happen in steps 4 - 5 (you - server)
+- `T1` - if happen in steps 1 - 2 (you - proxy)
+- `T2` - if happen in steps 3 - 7 (proxy - server)
+- `T3` - if happen in steps 8 - 9 (you - server)
 
 #### Without proxy
 
-1. You -> establishing TCP connection -> Server
-2. Server -> packet `SMSG_AUTH_CHALLENGE` -> You
-3. You -> packet `CMSG_AUTH_SESSION` -> Server
-4. Server -> packet `SMSG_AUTH_RESPONSE` -> You
+1. You -> TCP SYN -> Server
+2. Server -> TCP SYN-ACK -> You
+3. You -> TCP ACK -> Server
+4. Server -> packet `SMSG_AUTH_CHALLENGE` -> You
+5. You -> packet `CMSG_PING` -> Server
+6. Server -> TCP FIN -> You
+7. You -> TCP FIN -> Server
 
-Connection time (`Conn`) measured from step 1 and server ping (`Ping`) from steps 3 - 4.
+Connection time (`Conn`) measured from step 1 - 2 and server ping (`Ping`) from steps 5 - 6.
+
+Without a proxy the `Conn` and `Ping` values should be almost the same. But we don't know about proxy and we perform the same ping process as with a proxy.
 
 Timeouts:
 
-- `T1` - if happen in step 1
-- `T2` - if happen in step 2
-- `T3` - if happen in steps 3 - 4
+- `T1` - if happen in steps 1 - 2
+- `T2` - if happen in steps 3 - 4
+- `T3` - if happen in steps 5 - 6
 
 ## Antivirus reaction
 

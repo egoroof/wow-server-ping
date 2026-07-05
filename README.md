@@ -13,8 +13,8 @@ Definitions:
 - `Ping` - mean ping time to game server in milliseconds
 - `±` - mean deviation of `Conn` and `Ping`
 - `T1` - timeouts during initial TCP connection
-- `T2` - timeouts after T1 and until recieving first server message
-- `T3` - timeouts after T2 and until recieving second server message
+- `T2` - timeouts after `T1` and until receiving first server message
+- `T3` - timeouts after `T2`, during sending a message to the server and until server connection close
 - `E` - errors
 
 It can work as a Prometheus metrics exporter and display graphics in Grafana:

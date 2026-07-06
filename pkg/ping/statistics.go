@@ -50,7 +50,10 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 			if aTimeouts-bTimeouts != 0 {
 				return aTimeouts - bTimeouts
 			}
-			return a.PingMean - b.PingMean
+			if a.PingMean-b.PingMean != 0 {
+				return a.PingMean - b.PingMean
+			}
+			return a.PingMAD - b.PingMAD
 		})
 	}
 

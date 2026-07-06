@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -70,6 +72,15 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+	oldFile, err := os.ReadFile(filename)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	if bytes.Equal(oldFile, json) {
+		fmt.Printf("File %v has the same realm list\n", filename)
+		os.Exit(0)
 	}
 	err = os.WriteFile(filename, json, 0644)
 	if err != nil {

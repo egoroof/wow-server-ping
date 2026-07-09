@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 	"syscall"
 	"text/tabwriter"
 	"time"

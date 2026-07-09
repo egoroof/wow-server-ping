@@ -57,8 +57,8 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 		})
 	}
 
-	fmt.Fprintf(w, "Realm\tConn\t±\tPing\t±\tT1\tT2\tT3\tE\n")
 	for _, group := range groups {
+		fmt.Fprintf(w, "Realm\tConn\t±\tPing\t±\tT1\tT2\tT3\tE\n")
 		for _, stats := range serverTableGroups[group] {
 			t1 := " "
 			t2 := " "
@@ -92,9 +92,9 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 				t1, t2, t3, e,
 			)
 		}
-		w.Flush()
 		if len(serverTableGroups) > 1 {
-			fmt.Println("")
+			fmt.Fprintf(w, "\n")
 		}
 	}
+	w.Flush()
 }

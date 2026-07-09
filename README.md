@@ -49,7 +49,7 @@ If you worry about your credentials you can also run Wireshark, login in your Wo
 
 ### Ping
 
-Simple example, which  loads realm list from `servers/logon.wowcircle.me.json` file, sends ping requests and print statistics every 30 seconds:
+Simple example, which  loads realm list from `servers/logon.wowcircle.me.json` file, sends ping requests and print statistics every 10 seconds:
 
 ```shell
 wow-ping.exe logon.wowcircle.me

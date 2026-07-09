@@ -49,7 +49,7 @@ realmlist.exe admin logon.wowcircle.me
 
 ### Пинг
 
-Простой пример, который загружает список миров из файла `servers/logon.wowcircle.me.json`, отправляет пинг запросы и выводит статистику каждые 30 секунд:
+Простой пример, который загружает список миров из файла `servers/logon.wowcircle.me.json`, отправляет пинг запросы и выводит статистику каждые 10 секунд:
 
 ```shell
 wow-ping.exe logon.wowcircle.me

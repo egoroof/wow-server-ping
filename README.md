@@ -3,7 +3,7 @@
 | **🇬🇧 English** | [🇷🇺 Русский](README.ru.md) |
 | :-: | :-: |
 
-Ping tool for World of Warcraft 335a servers. Can correctly measure ping with servers behind proxy.
+Ping tool for World of Warcraft 335a servers. Correctly measures ping to servers behind a proxy.
 
 ![console usage](./images/console.png)
 

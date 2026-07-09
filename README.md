@@ -33,10 +33,16 @@ If you are interested in the `WoW Circle 3.3.5a` server you don't need to extrac
 
 You will need to extract realm list first. Wow servers can give you realm list only after login, so you will have to enter your username and password. This project comes with `realmlist.exe` utility, which logins to WoW server similar real WoW game client and save realm list to `servers` folder.
 
-Run with your user and server host:
+Usage:
 
 ```shell
-realmlist.exe user host
+realmlist.exe [-port N] [-timeout T] user host
+```
+
+Example:
+
+```shell
+realmlist.exe admin logon.wowcricle.me
 ```
 
 If you worry about your credentials you can also run Wireshark, login in your WoW client and extract realmlist yourself.

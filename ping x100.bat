@@ -1,1 +1,1 @@
-wow-ping.exe -servers logon.wowcircle.me -filter "x100"
+wow-ping.exe -filter "x100" logon.wowcircle.me

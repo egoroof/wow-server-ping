@@ -52,13 +52,13 @@ realmlist.exe admin logon.wowcircle.me
 Простой пример, который загружает список миров из файла `servers/logon.wowcircle.me.json`, отправляет пинг запросы и выводит статистику каждые 30 секунд:
 
 ```shell
-wow-ping.exe -servers logon.wowcircle.me
+wow-ping.exe logon.wowcircle.me
 ```
 
 Можно отфильтровать список серверов с помощью регулярного выражения опцией `-filter`:
 
 ```shell
-wow-ping.exe -servers logon.wowcircle.me -filter "x4"
+wow-ping.exe -filter "x4" logon.wowcircle.me
 ```
 
 Сборки для Windows содержат `.bat` файлы, которые вы можете использовать, либо сделать подобные для себя.
@@ -67,7 +67,6 @@ wow-ping.exe -servers logon.wowcircle.me -filter "x4"
 
 | Флаг | По умолчанию | Описание |
 |---|---|---|
-| `-servers` | `logon.wowcircle.me` | Конфиг серверов из папки `servers` |
 | `-port` | - | Порт для метрик Prometheus |
 | `-timeout` | `1s` | Таймаут пинга |
 | `-interval` | `1s` | Время ожидания между запросами |

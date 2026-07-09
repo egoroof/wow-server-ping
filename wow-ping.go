@@ -20,7 +20,6 @@ var PING_INTERVAL = flag.Duration("interval", time.Second, "sleep time between r
 var PING_TIMEOUT = flag.Duration("timeout", time.Second, "ping timeout")
 var STATS_INTERVAL = flag.Duration("stats-interval", time.Second*10, "how often stats should be printed to console")
 var STATS_COUNT = flag.Int("stats", 0, "how many stats to display before exit")
-var SERVER_CONFIG = flag.String("servers", "logon.wowcircle.me", "server config. Can pass multiple with comma")
 var FILTER = flag.String("filter", "", "regexp for filter servers by name")
 
 var promRespTime = ping.PrometheusMetric{
@@ -52,7 +51,7 @@ const promTypeConnectTimeout = "connect"
 const promTypeServerMsgTimeout = "serverMsg"
 const promTypeTransferTimeout = "transfer"
 
-func recordMetrics(servers []ping.Server) {
+func recordMetrics(servers []ping.Server, statsGroupOrder string) {
 	responseChan := make(chan ping.ServerResponse)
 
 	for _, server := range servers {
@@ -120,7 +119,7 @@ func recordMetrics(servers []ping.Server) {
 				time.Now().Format(time.TimeOnly),
 				requestCount,
 			)
-			ping.PrintResults(statistics, *SERVER_CONFIG)
+			ping.PrintResults(statistics, statsGroupOrder)
 			statsLogTime = time.Now()
 			statistics = make(map[string]ping.Statistics)
 			statsCount++
@@ -138,7 +137,14 @@ func recordMetrics(servers []ping.Server) {
 
 func main() {
 	flag.Parse()
-	configs := strings.Split(*SERVER_CONFIG, ",")
+
+	if flag.NArg() != 1 {
+		fmt.Println("Usage: wow-ping [flags] realmlist_config")
+		os.Exit(1)
+	}
+
+	configsWithComma := flag.Arg(0)
+	configs := strings.Split(configsWithComma, ",")
 
 	if *STATS_COUNT != 0 {
 		fmt.Printf("Stats count is %v\n", *STATS_COUNT)
@@ -193,7 +199,7 @@ func main() {
 
 	if *LISTEN_PORT == 0 {
 		fmt.Println("Listen port is not set. Prometheus metrics disabled")
-		recordMetrics(allServers)
+		recordMetrics(allServers, configsWithComma)
 	} else {
 		metrics := []*ping.PrometheusMetric{
 			&promRespErr,
@@ -209,7 +215,7 @@ func main() {
 			w.Write([]byte(resp.String()))
 		})
 
-		go recordMetrics(allServers)
+		go recordMetrics(allServers, configsWithComma)
 		fmt.Printf("Listening port %v\n", *LISTEN_PORT)
 		err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%v", *LISTEN_PORT), nil)
 		fmt.Println(err)

@@ -52,13 +52,13 @@ If you worry about your credentials you can also run Wireshark, login in your Wo
 Simple example, which  loads realm list from `servers/logon.wowcircle.me.json` file, sends ping requests and print statistics every 30 seconds:
 
 ```shell
-wow-ping.exe -servers logon.wowcircle.me
+wow-ping.exe logon.wowcircle.me
 ```
 
 You can filter servers by regexp with `-filter` option:
 
 ```shell
-wow-ping.exe -servers logon.wowcircle.me -filter "x4"
+wow-ping.exe -filter "x4" logon.wowcircle.me
 ```
 
 Windows builds comes with some `.bat` files which you can use or make similar for you.
@@ -67,7 +67,6 @@ Windows builds comes with some `.bat` files which you can use or make similar fo
 
 | Flag | Default | Description |
 |---|---|---|
-| `-servers` | `logon.wowcircle.me` | Servers config from `servers` folder |
 | `-port` | - | Listen port for Prometheus metrics |
 | `-timeout` | `1s` | Ping timeout |
 | `-interval` | `1s` | Sleep time between requests |

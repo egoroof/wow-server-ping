@@ -1,1 +1,1 @@
-wow-ping.exe -servers logon.wowcircle.me -filter "Fun"
+wow-ping.exe -filter "Fun" logon.wowcircle.me

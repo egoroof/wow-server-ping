@@ -29,7 +29,7 @@ For Windows you can find builds on the [Release page](https://github.com/egoroof
 
 ### Realm list
 
-If you are interested in `WoW Circle 3.3.5a` you don't need to extract realm list - it's already included in the build. You can skip this step.
+If you are interested in the `WoW Circle 3.3.5a` server you don't need to extract realm list - it's already included in the build. You can skip this step.
 
 You will need to extract realm list first. Wow servers can give you realm list only after login, so you will have to enter your username and password. This project comes with `realmlist.exe` utility, which logins to WoW server similar real WoW game client and save realm list to `servers` folder.
 

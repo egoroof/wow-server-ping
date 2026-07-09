@@ -42,7 +42,7 @@ realmlist.exe [-port N] [-timeout T] user host
 Example:
 
 ```shell
-realmlist.exe admin logon.wowcricle.me
+realmlist.exe admin logon.wowcircle.me
 ```
 
 If you worry about your credentials you can also run Wireshark, login in your WoW client and extract realmlist yourself.

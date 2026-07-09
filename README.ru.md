@@ -42,7 +42,7 @@ realmlist.exe [-port N] [-timeout T] user host
 Пример:
 
 ```shell
-realmlist.exe admin logon.wowcricle.me
+realmlist.exe admin logon.wowcircle.me
 ```
 
 Если переживаете за свои учётные данные, то можете запустить Wireshark, залогиниться через свой игровой клиент и самостоятельно извлечь список миров.

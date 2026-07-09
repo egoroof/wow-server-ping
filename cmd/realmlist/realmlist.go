@@ -21,18 +21,14 @@ var TIMEOUT = flag.Duration("timeout", time.Second*10, "timeout for network oper
 
 func main() {
 	flag.Parse()
-	if len(os.Args) < 2 {
-		fmt.Println("Usage: realmlist user@host")
+
+	if flag.NArg() != 2 {
+		fmt.Println("Usage: realmlist [-port N] [-timeout T] user host")
 		os.Exit(1)
 	}
 
-	userHost := strings.Split(os.Args[1], "@")
-	if len(userHost) < 2 {
-		fmt.Println("Usage: realmlist user@host")
-		os.Exit(1)
-	}
-	user := userHost[0]
-	host := userHost[1]
+	user := flag.Arg(0)
+	host := flag.Arg(1)
 
 	fmt.Print("Enter password: ")
 	password, err := term.ReadPassword(int(syscall.Stdin))

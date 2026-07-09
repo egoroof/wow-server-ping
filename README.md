@@ -36,7 +36,7 @@ You will need to extract realm list first. Wow servers can give you realm list o
 Run with your user and server host:
 
 ```shell
-realmlist.exe user@host
+realmlist.exe user host
 ```
 
 If you worry about your credentials you can also run Wireshark, login in your WoW client and extract realmlist yourself.

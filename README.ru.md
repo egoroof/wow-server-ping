@@ -36,7 +36,7 @@
 Использование:
 
 ```shell
-realmlist.exe [-port N] [-timeout T] user host
+realmlist.exe [-port <number>] [-timeout <duration>] user host
 ```
 
 Пример:

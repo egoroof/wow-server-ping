@@ -36,7 +36,7 @@ You will need to extract realm list first. Wow servers can give you realm list o
 Usage:
 
 ```shell
-realmlist.exe [-port N] [-timeout T] user host
+realmlist.exe [-port <number>] [-timeout <duration>] user host
 ```
 
 Example:

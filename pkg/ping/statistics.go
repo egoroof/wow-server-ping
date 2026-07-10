@@ -60,10 +60,10 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 	for _, group := range groups {
 		fmt.Fprintf(w, "Realm\tConn\t±\tPing\t±\tT1\tT2\tT3\tE\n")
 		for _, stats := range serverTableGroups[group] {
-			t1 := " "
-			t2 := " "
-			t3 := " "
-			e := " "
+			t1 := ""
+			t2 := ""
+			t3 := ""
+			e := ""
 			if stats.Timeouts1 > 0 {
 				t1 = strconv.Itoa(stats.Timeouts1)
 			}
@@ -76,19 +76,32 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 			if stats.Errors > 0 {
 				e = strconv.Itoa(stats.Errors)
 			}
-			if len(stats.PingDurations) == 0 {
-				fmt.Fprintf(
-					w, "%v\tunavailable\t\t\t\t%v\t%v\t%v\t%v\n",
-					stats.ServerName,
-					t1, t2, t3, e,
-				)
-				continue
+
+			connMean := strconv.Itoa(stats.ConnectMean)
+			connMad := strconv.Itoa(stats.ConnectMAD)
+
+			if len(stats.ConnectDurations) == 0 {
+				connMean = "-"
+				connMad = ""
+			} else if stats.ConnectMean == 0 {
+				connMean = "<1"
 			}
+
+			pingMean := strconv.Itoa(stats.PingMean)
+			pingMad := strconv.Itoa(stats.PingMAD)
+
+			if len(stats.PingDurations) == 0 {
+				pingMean = "-"
+				pingMad = ""
+			} else if stats.PingMean == 0 {
+				pingMean = "<1"
+			}
+
 			fmt.Fprintf(
 				w, "%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
 				stats.ServerName,
-				stats.ConnectMean, stats.ConnectMAD,
-				stats.PingMean, stats.PingMAD,
+				connMean, connMad,
+				pingMean, pingMad,
 				t1, t2, t3, e,
 			)
 		}

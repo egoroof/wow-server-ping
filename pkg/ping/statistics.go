@@ -76,7 +76,7 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 			if stats.Errors > 0 {
 				e = strconv.Itoa(stats.Errors)
 			}
-			if stats.PingMean == 0 {
+			if len(stats.PingDurations) == 0 {
 				fmt.Fprintf(
 					w, "%v\tunavailable\t\t\t\t%v\t%v\t%v\t%v\n",
 					stats.ServerName,

@@ -22,7 +22,7 @@ func main() {
 	flag.Parse()
 
 	if flag.NArg() != 2 {
-		fmt.Println("Usage: realmlist [-port N] [-timeout T] user host")
+		fmt.Println("Usage: realmlist [-port <number>] [-timeout <duration>] user host")
 		os.Exit(1)
 	}
 

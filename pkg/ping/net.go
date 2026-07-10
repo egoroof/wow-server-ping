@@ -21,9 +21,9 @@ type ServerResponse struct {
 	Name  string
 	Group string
 
-	ConnectDurationMs int
-	PingDurationMs    int
-	Error             error
+	ConnectDuration time.Duration
+	PingDuration    time.Duration
+	Error           error
 }
 
 var smsgAuthChallenge = []byte{
@@ -46,73 +46,57 @@ var cmsgPing = []byte{
 func PingWowServer(
 	name, group, address string,
 	timeout time.Duration,
-	respose chan<- ServerResponse,
+	respChan chan<- ServerResponse,
 ) {
+	resp := ServerResponse{
+		Name:  name,
+		Group: group,
+	}
 	startTime := time.Now()
 	conn, err := net.DialTimeout("tcp", address, timeout)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, os.ErrDeadlineExceeded) {
-			respose <- ServerResponse{
-				Name:  name,
-				Group: group,
-				Error: ErrConnectTimeout,
-			}
+			resp.Error = ErrConnectTimeout
+			respChan <- resp
 			return
 		}
-		respose <- ServerResponse{
-			Name:  name,
-			Group: group,
-			Error: err,
-		}
+		resp.Error = err
+		respChan <- resp
 		return
 	}
 	defer conn.Close()
 
 	connectDuration := time.Since(startTime)
 	if connectDuration > timeout {
-		respose <- ServerResponse{
-			Name:  name,
-			Group: group,
-			Error: ErrConnectTimeout,
-		}
+		resp.Error = ErrConnectTimeout
+		respChan <- resp
 		return
 	}
+	resp.ConnectDuration = connectDuration
 
 	buf := make([]byte, 64)
 	conn.SetDeadline(time.Now().Add(timeout))
 	bytesRead, err := conn.Read(buf)
 	if err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
-			respose <- ServerResponse{
-				Name:  name,
-				Group: group,
-				Error: ErrServerMsgTimeout,
-			}
+			resp.Error = ErrServerMsgTimeout
+			respChan <- resp
 			return
 		}
-		respose <- ServerResponse{
-			Name:  name,
-			Group: group,
-			Error: err,
-		}
+		resp.Error = err
+		respChan <- resp
 		return
 	}
 
 	if bytesRead >= len(buf) {
-		respose <- ServerResponse{
-			Name:  name,
-			Group: group,
-			Error: ErrResponseBodyBig,
-		}
+		resp.Error = ErrResponseBodyBig
+		respChan <- resp
 		return
 	}
 
 	if !bytes.Equal(smsgAuthChallenge, buf[0:8]) {
-		respose <- ServerResponse{
-			Name:  name,
-			Group: group,
-			Error: ErrInvalidResponse,
-		}
+		resp.Error = ErrInvalidResponse
+		respChan <- resp
 		return
 	}
 
@@ -121,18 +105,12 @@ func PingWowServer(
 	_, err = conn.Write(cmsgPing)
 	if err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
-			respose <- ServerResponse{
-				Name:  name,
-				Group: group,
-				Error: ErrTransferTimeout,
-			}
+			resp.Error = ErrTransferTimeout
+			respChan <- resp
 			return
 		}
-		respose <- ServerResponse{
-			Name:  name,
-			Group: group,
-			Error: err,
-		}
+		resp.Error = err
+		respChan <- resp
 		return
 	}
 
@@ -142,46 +120,30 @@ func PingWowServer(
 
 	// expect the server to close connection
 	if err == nil || bytesRead > 0 {
-		respose <- ServerResponse{
-			Name:  name,
-			Group: group,
-			Error: ErrInvalidResponse,
-		}
+		resp.Error = ErrInvalidResponse
+		respChan <- resp
 		return
 	}
 
 	if errors.Is(err, os.ErrDeadlineExceeded) {
-		respose <- ServerResponse{
-			Name:  name,
-			Group: group,
-			Error: ErrTransferTimeout,
-		}
+		resp.Error = ErrTransferTimeout
+		respChan <- resp
 		return
 	}
 
 	if !errors.Is(err, io.EOF) {
-		respose <- ServerResponse{
-			Name:  name,
-			Group: group,
-			Error: err,
-		}
+		resp.Error = err
+		respChan <- resp
 		return
 	}
 
 	respDuration := time.Since(writeTime)
 	if respDuration > timeout {
-		respose <- ServerResponse{
-			Name:  name,
-			Group: group,
-			Error: ErrTransferTimeout,
-		}
+		resp.Error = ErrTransferTimeout
+		respChan <- resp
 		return
 	}
 
-	respose <- ServerResponse{
-		Name:              name,
-		Group:             group,
-		ConnectDurationMs: int(connectDuration.Milliseconds()),
-		PingDurationMs:    int(respDuration.Milliseconds()),
-	}
+	resp.PingDuration = respDuration
+	respChan <- resp
 }

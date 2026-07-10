@@ -84,15 +84,23 @@ func recordMetrics(servers []ping.Server, statsGroupOrder string) {
 				}
 			}
 
-			if resp.Error == nil {
-				promRespTime.SetValue([]string{resp.Name, resp.Group}, resp.PingDurationMs)
-				promConnTime.SetValue([]string{resp.Name, resp.Group}, resp.ConnectDurationMs)
-				stat.PingDurations = append(stat.PingDurations, resp.PingDurationMs)
-				stat.ConnectDurations = append(stat.ConnectDurations, resp.ConnectDurationMs)
-			} else {
-				promRespTime.Delete([]string{resp.Name, resp.Group})
+			if resp.ConnectDuration == 0 {
 				promConnTime.Delete([]string{resp.Name, resp.Group})
+			} else {
+				conn := int(resp.ConnectDuration.Milliseconds())
+				promConnTime.SetValue([]string{resp.Name, resp.Group}, conn)
+				stat.ConnectDurations = append(stat.ConnectDurations, conn)
+			}
 
+			if resp.PingDuration == 0 {
+				promRespTime.Delete([]string{resp.Name, resp.Group})
+			} else {
+				ping := int(resp.PingDuration.Milliseconds())
+				promRespTime.SetValue([]string{resp.Name, resp.Group}, ping)
+				stat.PingDurations = append(stat.PingDurations, ping)
+			}
+
+			if resp.Error != nil {
 				if errors.Is(resp.Error, ping.ErrConnectTimeout) {
 					promRespTimeout.AddValue([]string{resp.Name, resp.Group, promTypeConnectTimeout}, 1)
 					stat.Timeouts1++

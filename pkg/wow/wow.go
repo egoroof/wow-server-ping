@@ -14,6 +14,8 @@ import (
 
 // based on https://wowdev.wiki/Login_Packet
 
+var Err2faRequired = errors.New("2fa required")
+
 type wowClient struct {
 	address string
 	conn    net.Conn
@@ -24,6 +26,7 @@ type wowClient struct {
 
 	serverPublicKey []byte
 	salt            []byte
+	securityFlag    byte
 
 	clientPublicKey  []byte
 	clientPrivateKey []byte
@@ -45,7 +48,7 @@ func NewWowClient(
 	}
 }
 
-func (w *wowClient) Login() error {
+func (w *wowClient) Login(authenticator string) error {
 	conn, err := net.DialTimeout("tcp", w.address, w.timeout)
 	if err != nil {
 		return err
@@ -67,6 +70,13 @@ func (w *wowClient) Login() error {
 		}
 	}
 
+	if w.securityFlag != 0 && w.securityFlag != 4 {
+		return fmt.Errorf("2fa type AUTHENTICATOR supported only")
+	}
+	if w.securityFlag == 4 && authenticator == "" {
+		return Err2faRequired
+	}
+
 	w.clientPrivateKey = srp6.ClientPrivateKey()
 	w.clientPublicKey = srp6.ClientPublicKey(w.clientPrivateKey)
 	w.clientSessionKey = srp6.ClientSessionKey(
@@ -76,7 +86,7 @@ func (w *wowClient) Login() error {
 		w.username, w.salt, w.clientPublicKey, w.serverPublicKey, w.clientSessionKey,
 	)
 
-	err = w.writeAuthLogonProofClient()
+	err = w.writeAuthLogonProofClient(authenticator)
 	if err != nil {
 		return fmt.Errorf("writeAuthLogonProofClient error: %w", err)
 	}
@@ -131,14 +141,20 @@ func (w *wowClient) writeAuthLogonChallengeClient() error {
 	return nil
 }
 
-func (w *wowClient) writeAuthLogonProofClient() error {
+func (w *wowClient) writeAuthLogonProofClient(authenticator string) error {
 	cmd := []byte{
 		0x1, // Opcode CMD_AUTH_LOGON_PROOF
 	}
 	cmd = append(cmd, w.clientPublicKey...)
 	cmd = append(cmd, w.clientProof...)
-	// crc_hash (20 bytes) + num_keys + 2fa
-	cmd = append(cmd, make([]byte, 22)...)
+	// crc_hash (20 bytes) + num_keys
+	cmd = append(cmd, make([]byte, 21)...)
+	cmd = append(cmd, w.securityFlag)
+
+	if w.securityFlag == 4 {
+		cmd = append(cmd, byte(len(authenticator)))
+		cmd = append(cmd, authenticator...)
+	}
 
 	w.conn.SetWriteDeadline(time.Now().Add(w.timeout))
 	_, err := w.conn.Write(cmd)
@@ -221,12 +237,9 @@ func (w *wowClient) readAuthLogonChallengeServer() error {
 
 	cursor += 16 // crc_salt
 
-	securityFlag := buf[cursor]
+	w.securityFlag = buf[cursor]
 	cursor++
 
-	if securityFlag != 0 {
-		return fmt.Errorf("2fa is not supported")
-	}
 	return nil
 }
 

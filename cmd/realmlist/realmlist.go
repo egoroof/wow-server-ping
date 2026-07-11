@@ -40,10 +40,25 @@ func main() {
 	address := fmt.Sprintf("%v:%v", host, *PORT)
 	client := wow.NewWowClient(address, user, string(password), *TIMEOUT)
 
-	err = client.Login()
+	err = client.Login("")
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		if errors.Is(err, wow.Err2faRequired) {
+			fmt.Print("Enter authenticator code: ")
+			authenticator := ""
+			_, err := fmt.Scanln(&authenticator)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			err = client.Login(authenticator)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+		} else {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
 
 	realms := client.GetRealmList()

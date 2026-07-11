@@ -146,12 +146,17 @@ func recordMetrics(servers []ping.Server, statsGroupOrder string) {
 func main() {
 	flag.Parse()
 
-	if flag.NArg() != 1 {
-		fmt.Println("Usage: wow-ping [flags] realmlist_config")
-		os.Exit(1)
+	configsWithComma := flag.Arg(0)
+
+	if configsWithComma == "" {
+		fmt.Print("Enter config names: ")
+		_, err := fmt.Scanln(&configsWithComma)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
 
-	configsWithComma := flag.Arg(0)
 	configs := strings.Split(configsWithComma, ",")
 
 	if *STATS_COUNT != 0 {

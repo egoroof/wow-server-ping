@@ -11,6 +11,7 @@ import (
 )
 
 var ErrInvalidResponse = errors.New("invalid response")
+var ErrIpTemporarelyBlocked = errors.New("your ip is temporarely blocked")
 var ErrResponseBodyBig = errors.New("response body too big")
 
 var ErrConnectTimeout = errors.New("connect timeout")
@@ -32,6 +33,12 @@ var smsgAuthChallenge = []byte{
 	1, 0, 0, 0, // LE unknown1
 	// 4x LE server_seed
 	// 32x seed
+}
+
+var smsgAuthResponseReject = []byte{
+	0, 3, // size
+	238, 1, // opcode 0x1EE SMSG_AUTH_RESPONSE
+	14, // result AUTH_REJECT
 }
 
 var cmsgPing = []byte{
@@ -95,6 +102,11 @@ func PingWowServer(
 	}
 
 	if !bytes.Equal(smsgAuthChallenge, buf[0:8]) {
+		if bytes.Equal(smsgAuthResponseReject, buf[0:5]) {
+			resp.Error = ErrIpTemporarelyBlocked
+			respChan <- resp
+			return
+		}
 		resp.Error = ErrInvalidResponse
 		respChan <- resp
 		return

@@ -144,7 +144,7 @@ func recordMetrics(servers []ping.Server, statsGroupOrder string) {
 }
 
 func main() {
-	fmt.Println("Ping tool for World of Warcraft 335a servers.")
+	fmt.Println("Ping tool for World of Warcraft 3.3.5a servers.")
 	flag.Parse()
 
 	configsWithComma := flag.Arg(0)
@@ -160,16 +160,23 @@ func main() {
 
 	configs := strings.Split(configsWithComma, ",")
 
+	fmt.Printf("Ping timeout: %v\n", *PING_TIMEOUT)
+	fmt.Printf("Ping interval: %v\n", *PING_INTERVAL)
+	fmt.Printf("Stats interval: %v\n", *STATS_INTERVAL)
+
 	if *STATS_COUNT != 0 {
-		fmt.Printf("Stats count is %v\n", *STATS_COUNT)
+		fmt.Printf("Stats count: %v\n", *STATS_COUNT)
 	}
-	fmt.Printf("Ping timeout %v\n", *PING_TIMEOUT)
-	fmt.Printf("Ping interval %v\n", *PING_INTERVAL)
-	fmt.Printf("Stats interval %v\n", *STATS_INTERVAL)
+
+	if *LISTEN_PORT == 0 {
+		fmt.Println("Listen port is not set. Prometheus metrics disabled")
+	} else {
+		fmt.Printf("Listen port: %v\n", *LISTEN_PORT)
+	}
 
 	var filter *regexp.Regexp
 	if *FILTER != "" {
-		fmt.Printf("Server name filter regexp: %v\n", *FILTER)
+		fmt.Printf("Realm name filter: \"%v\"\n", *FILTER)
 		filter = regexp.MustCompile(*FILTER)
 	}
 
@@ -206,12 +213,11 @@ func main() {
 	}
 
 	if len(allServers) == 0 {
-		fmt.Println("No servers found")
+		fmt.Println("No realms found")
 		os.Exit(1)
 	}
 
 	if *LISTEN_PORT == 0 {
-		fmt.Println("Listen port is not set. Prometheus metrics disabled")
 		recordMetrics(allServers, configsWithComma)
 	} else {
 		metrics := []*ping.PrometheusMetric{
@@ -229,7 +235,6 @@ func main() {
 		})
 
 		go recordMetrics(allServers, configsWithComma)
-		fmt.Printf("Listening port %v\n", *LISTEN_PORT)
 		err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%v", *LISTEN_PORT), nil)
 		fmt.Println(err)
 	}

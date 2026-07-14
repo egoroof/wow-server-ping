@@ -19,7 +19,7 @@ var PORT = flag.Int("port", 3724, "realmlist server port")
 var TIMEOUT = flag.Duration("timeout", time.Second*10, "timeout for network operations")
 
 func main() {
-	fmt.Println("World of Warcraft 335a realm list extractor.")
+	fmt.Println("World of Warcraft 3.3.5a realm list extractor.")
 	flag.Parse()
 
 	user := flag.Arg(0)

@@ -25,7 +25,7 @@ It can work as a Prometheus metrics exporter and display graphics in Grafana:
 
 ### Downloads
 
-For Windows you can find builds on the [Release page](https://github.com/egoroof/wow-server-ping/releases/latest). Open an issue if you need another OS builds.
+Builds are available for Windows and Linux on the [Release page](https://github.com/egoroof/wow-server-ping/releases/latest). Open an issue if you need another OS builds.
 
 ### Realm list
 

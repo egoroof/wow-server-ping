@@ -177,7 +177,7 @@ func main() {
 	var allServers []ping.Server
 	for _, configName := range configs {
 		serversPath := fmt.Sprintf("./servers/%v.json", configName)
-		fmt.Printf("\nServer list %v\n", serversPath)
+		fmt.Printf("\nRealm list %v\n", serversPath)
 
 		serversFile, err := os.ReadFile(serversPath)
 		if err != nil {
@@ -192,7 +192,6 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Printf("Loaded servers:\n")
 		for _, server := range servers {
 			if *FILTER != "" && !filter.MatchString(server.Name) {
 				continue

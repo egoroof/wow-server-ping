@@ -20,7 +20,6 @@ jobs:
           NAME="wow-ping-${{ github.ref_name }}.linux-amd64"
           mkdir "$NAME"
           cp -r servers "$NAME/"
-          cp ping*.bat "$NAME/"
           cp *.md "$NAME/"
           go build -o "$NAME/" wow-ping.go
           go build -o "$NAME/" cmd/realmlist/realmlist.go

@@ -144,6 +144,7 @@ func recordMetrics(servers []ping.Server, statsGroupOrder string) {
 }
 
 func main() {
+	fmt.Println("Ping tool for World of Warcraft 335a servers.")
 	flag.Parse()
 
 	configsWithComma := flag.Arg(0)

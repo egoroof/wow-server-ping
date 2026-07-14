@@ -15,21 +15,30 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: "1.26"
-      - name: Build Windows binaries
+      - name: Prepare Linux release bundle
         run: |
-          GOOS=windows GOARCH=amd64 go build -o wow-ping.exe wow-ping.go
-          GOOS=windows GOARCH=amd64 go build -o realmlist.exe cmd/realmlist/realmlist.go
-      - name: Prepare release bundle
+          NAME="wow-ping-${{ github.ref_name }}.linux-amd64"
+          mkdir "$NAME"
+          cp -r servers "$NAME/"
+          cp ping*.bat "$NAME/"
+          cp *.md "$NAME/"
+          go build -o "$NAME/" wow-ping.go
+          go build -o "$NAME/" cmd/realmlist/realmlist.go
+          zip -qr "${NAME}.zip" "$NAME"
+      - name: Prepare Windows release bundle
         run: |
           NAME="wow-ping-${{ github.ref_name }}.windows-amd64"
           mkdir "$NAME"
           cp -r servers "$NAME/"
           cp ping*.bat "$NAME/"
-          cp *.exe "$NAME/"
           cp *.md "$NAME/"
+          GOOS=windows GOARCH=amd64 go build -o "$NAME/" wow-ping.go
+          GOOS=windows GOARCH=amd64 go build -o "$NAME/" cmd/realmlist/realmlist.go
           zip -qr "${NAME}.zip" "$NAME"
       - name: Release
         uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
-          files: wow-ping-${{ github.ref_name }}.windows-amd64.zip
+          files: |
+            wow-ping-${{ github.ref_name }}.windows-amd64.zip
+            wow-ping-${{ github.ref_name }}.linux-amd64.zip

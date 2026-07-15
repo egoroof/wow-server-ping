@@ -17,7 +17,7 @@ Definitions:
 - `T3` - timeouts after `T2`, during sending a message to the server and until server connection close
 - `E` - errors
 
-It can work as a Prometheus metrics exporter and display graphics in Grafana:
+It can work as a [Prometheus](https://prometheus.io) metrics exporter and display graphics in [Grafana](https://grafana.com/oss/grafana/):
 
 ![grafana usage](./images/grafana.png)
 

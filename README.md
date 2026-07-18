@@ -31,21 +31,11 @@ Builds are available for Windows and Linux on the [Release page](https://github.
 
 If you are interested in the `WoW Circle 3.3.5a` server you don't need to extract realm list - it's already included in the build. You can skip this step.
 
-You will need to extract realm list first. Wow servers can give you realm list only after login, so you will have to enter your username and password. This project comes with `realmlist.exe` utility, which logins to WoW server similar real WoW game client and save realm list to `servers` folder.
+You will need to extract realm list first. Wow servers can give you realm list only after login, so you will have to enter your username and password. This project has an utility, which logins to WoW server similar real WoW game client and save realm list to `servers` folder.
 
-Usage:
+Start `realmlist.bat` on Windows or `realmlist` on Linux. It will ask server host, your username and password.
 
-```shell
-realmlist.exe [-port <number>] [-timeout <duration>] user host
-```
-
-Example:
-
-```shell
-realmlist.exe admin logon.wowcircle.me
-```
-
-If you worry about your credentials you can also run Wireshark, login in your WoW client and extract realmlist yourself.
+If you worry about your credentials you can run Wireshark, login in your WoW client and extract realmlist yourself.
 
 ### Ping
 

@@ -22,8 +22,8 @@ func main() {
 	fmt.Println("World of Warcraft 3.3.5a realm list extractor.")
 	flag.Parse()
 
-	user := flag.Arg(0)
-	host := flag.Arg(1)
+	host := flag.Arg(0)
+	user := flag.Arg(1)
 
 	if host == "" {
 		fmt.Print("Enter host: ")

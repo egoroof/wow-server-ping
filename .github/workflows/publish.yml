@@ -30,6 +30,7 @@ jobs:
           mkdir "$NAME"
           cp -r servers "$NAME/"
           cp ping*.bat "$NAME/"
+          cp realmlist.bat "$NAME/"
           cp *.md "$NAME/"
           GOOS=windows GOARCH=amd64 go build -o "$NAME/" wow-ping.go
           GOOS=windows GOARCH=amd64 go build -o "$NAME/" cmd/realmlist/realmlist.go

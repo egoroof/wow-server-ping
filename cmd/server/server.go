@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/egoroof/wow-server-ping/pkg/srp6"
 )
@@ -128,9 +129,10 @@ func handleAuthConnection(conn net.Conn) {
 		0, // realmType
 		0, // locked
 		0, // flag
-
-		84, 114, 105, 110, 105, 116, 121, 0, // name Trinity \0
-		49, 50, 55, 46, 48, 46, 48, 46, 49, 58, 56, 48, 56, 53, 0, // address 127.0.0.1:8085 \0
+		// name Trinity \0
+		84, 114, 105, 110, 105, 116, 121, 0,
+		// address 127.0.0.1:8085 \0
+		49, 50, 55, 46, 48, 46, 48, 46, 49, 58, 56, 48, 56, 53, 0,
 		0, 0, 0, 0, // population
 		0, // numChars
 		0, // category
@@ -176,4 +178,7 @@ func handleWorldConnection(conn net.Conn) {
 		fmt.Println(err)
 		return
 	}
+
+	// ping delay
+	time.Sleep(time.Millisecond * 10)
 }

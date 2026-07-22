@@ -72,25 +72,23 @@ func (m *PrometheusMetric) GetString() string {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	lines := []string{
-		fmt.Sprintf("# HELP %v %v", m.Name, m.Help),
-		fmt.Sprintf("# TYPE %v %v", m.Name, m.Type),
-	}
+	var res strings.Builder
+	fmt.Fprintf(&res, "# HELP %v %v\n", m.Name, m.Help)
+	fmt.Fprintf(&res, "# TYPE %v %v\n", m.Name, m.Type)
 
 	for _, elem := range m.elems {
-		labelPairs := []string{}
+		fmt.Fprintf(&res, "%v{", m.Name)
 
 		for i, labelName := range m.LabelNames {
-			labelPairs = append(labelPairs,
-				fmt.Sprintf(`%v="%v"`, labelName, elem.labels[i]),
-			)
+			fmt.Fprintf(&res, `%v="%v"`, labelName, elem.labels[i])
+			if i != len(m.LabelNames)-1 {
+				fmt.Fprintf(&res, " ")
+			}
 		}
 
-		lines = append(lines,
-			fmt.Sprintf("%v{%v} %v", m.Name, strings.Join(labelPairs, " "), elem.value),
-		)
+		fmt.Fprintf(&res, "} %v\n", elem.value)
 	}
 
-	lines = append(lines, "")
-	return strings.Join(lines, "\n")
+	fmt.Fprintf(&res, "\n")
+	return res.String()
 }

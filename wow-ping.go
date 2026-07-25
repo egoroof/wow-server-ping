@@ -76,7 +76,8 @@ func recordMetrics(servers []ping.Server, statsGroupOrder string) {
 		for range servers {
 			resp := <-responseChan
 
-			stat, statExist := statistics[resp.Name]
+			statsKey := resp.Name + resp.Group
+			stat, statExist := statistics[statsKey]
 			if !statExist {
 				stat = ping.Statistics{
 					ServerName:  resp.Name,
@@ -117,7 +118,7 @@ func recordMetrics(servers []ping.Server, statsGroupOrder string) {
 				}
 			}
 
-			statistics[resp.Name] = stat
+			statistics[statsKey] = stat
 		}
 
 		if time.Now().After(statsLogTime.Add(*STATS_INTERVAL)) {

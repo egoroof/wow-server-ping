@@ -58,6 +58,10 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 	}
 
 	for _, group := range groups {
+		if _, exist := serverTableGroups[group]; !exist {
+			// groups can be with zero realms due to filtering
+			continue
+		}
 		fmt.Fprintf(w, "Realm\tConn\t±\tPing\t±\tT1\tT2\tT3\tE\n")
 		for _, stats := range serverTableGroups[group] {
 			t1 := ""

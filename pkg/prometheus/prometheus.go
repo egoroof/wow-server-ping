@@ -1,4 +1,4 @@
-package ping
+package prometheus
 
 import (
 	"fmt"
@@ -12,17 +12,17 @@ type metricElem struct {
 	value  int
 }
 
-type PrometheusMetric struct {
-	Name       string
-	Help       string
-	Type       string // gauge | counter
-	LabelNames []string
+type metric struct {
+	name       string
+	help       string
+	typee      string // gauge | counter
+	labelNames []string
 	elems      []metricElem
 
 	mu sync.Mutex
 }
 
-func (m *PrometheusMetric) SetValue(labels []string, value int) {
+func (m *metric) setValue(labels []string, value int) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -39,7 +39,7 @@ func (m *PrometheusMetric) SetValue(labels []string, value int) {
 	})
 }
 
-func (m *PrometheusMetric) AddValue(labels []string, value int) {
+func (m *metric) addValue(labels []string, value int) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -56,7 +56,7 @@ func (m *PrometheusMetric) AddValue(labels []string, value int) {
 	})
 }
 
-func (m *PrometheusMetric) Delete(labels []string) {
+func (m *metric) delete(labels []string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -68,20 +68,20 @@ func (m *PrometheusMetric) Delete(labels []string) {
 	}
 }
 
-func (m *PrometheusMetric) GetString() string {
+func (m *metric) string() string {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	var res strings.Builder
-	fmt.Fprintf(&res, "# HELP %v %v\n", m.Name, m.Help)
-	fmt.Fprintf(&res, "# TYPE %v %v\n", m.Name, m.Type)
+	fmt.Fprintf(&res, "# HELP %v %v\n", m.name, m.help)
+	fmt.Fprintf(&res, "# TYPE %v %v\n", m.name, m.typee)
 
 	for _, elem := range m.elems {
-		fmt.Fprintf(&res, "%v{", m.Name)
+		fmt.Fprintf(&res, "%v{", m.name)
 
-		for i, labelName := range m.LabelNames {
+		for i, labelName := range m.labelNames {
 			fmt.Fprintf(&res, `%v="%v"`, labelName, elem.labels[i])
-			if i != len(m.LabelNames)-1 {
+			if i != len(m.labelNames)-1 {
 				fmt.Fprintf(&res, " ")
 			}
 		}

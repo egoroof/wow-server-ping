@@ -5,7 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"net/http"
 	"os"
 	"regexp"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"github.com/egoroof/wow-server-ping/pkg/ping"
+	"github.com/egoroof/wow-server-ping/pkg/prometheus"
 )
 
 var LISTEN_PORT = flag.Int("port", 0, "listen port for Prometheus metrics")
@@ -22,43 +22,11 @@ var STATS_INTERVAL = flag.Duration("stats-interval", time.Second*10, "how often 
 var STATS_COUNT = flag.Int("stats", 0, "how many stats to display before exit")
 var FILTER = flag.String("filter", "", "regexp for filter servers by name")
 
-var promRespTime = ping.PrometheusMetric{
-	Name:       "wow_server_response_time_ms",
-	Help:       "WoW server response time in ms",
-	Type:       "gauge",
-	LabelNames: []string{"server", "group"},
-}
-var promConnTime = ping.PrometheusMetric{
-	Name:       "wow_server_connect_time_ms",
-	Help:       "WoW server connect time in ms",
-	Type:       "gauge",
-	LabelNames: []string{"server", "group"},
-}
-var promRespTimeout = ping.PrometheusMetric{
-	Name:       "wow_server_timeout_count",
-	Help:       "WoW server timeout count",
-	Type:       "counter",
-	LabelNames: []string{"server", "group", "type"},
-}
-var promRespErr = ping.PrometheusMetric{
-	Name:       "wow_server_error_count",
-	Help:       "WoW server error count",
-	Type:       "counter",
-	LabelNames: []string{"server", "group"},
-}
-
-const promTypeConnectTimeout = "connect"
-const promTypeServerMsgTimeout = "serverMsg"
-const promTypeTransferTimeout = "transfer"
-
-func recordMetrics(servers []ping.Server, statsGroupOrder string) {
+func recordMetrics(servers []ping.Server, statsGroupOrder string, metrics *prometheus.ResponseMetrics) {
 	responseChan := make(chan ping.ServerResponse)
 
-	for _, server := range servers {
-		promRespTimeout.SetValue([]string{server.Name, server.Group, promTypeConnectTimeout}, 0)
-		promRespTimeout.SetValue([]string{server.Name, server.Group, promTypeServerMsgTimeout}, 0)
-		promRespTimeout.SetValue([]string{server.Name, server.Group, promTypeTransferTimeout}, 0)
-		promRespErr.SetValue([]string{server.Name, server.Group}, 0)
+	if metrics != nil {
+		metrics.Init(servers)
 	}
 
 	statsLogTime := time.Now()
@@ -85,35 +53,29 @@ func recordMetrics(servers []ping.Server, statsGroupOrder string) {
 				}
 			}
 
-			if resp.ConnectDuration == 0 {
-				promConnTime.Delete([]string{resp.Name, resp.Group})
-			} else {
+			if metrics != nil {
+				metrics.Update(resp)
+			}
+
+			if resp.ConnectDuration != 0 {
 				conn := int(resp.ConnectDuration.Milliseconds())
-				promConnTime.SetValue([]string{resp.Name, resp.Group}, conn)
 				stat.ConnectDurations = append(stat.ConnectDurations, conn)
 			}
 
-			if resp.PingDuration == 0 {
-				promRespTime.Delete([]string{resp.Name, resp.Group})
-			} else {
+			if resp.PingDuration != 0 {
 				ping := int(resp.PingDuration.Milliseconds())
-				promRespTime.SetValue([]string{resp.Name, resp.Group}, ping)
 				stat.PingDurations = append(stat.PingDurations, ping)
 			}
 
 			if resp.Error != nil {
 				if errors.Is(resp.Error, ping.ErrConnectTimeout) {
-					promRespTimeout.AddValue([]string{resp.Name, resp.Group, promTypeConnectTimeout}, 1)
 					stat.Timeouts1++
 				} else if errors.Is(resp.Error, ping.ErrServerMsgTimeout) {
-					promRespTimeout.AddValue([]string{resp.Name, resp.Group, promTypeServerMsgTimeout}, 1)
 					stat.Timeouts2++
 				} else if errors.Is(resp.Error, ping.ErrTransferTimeout) {
-					promRespTimeout.AddValue([]string{resp.Name, resp.Group, promTypeTransferTimeout}, 1)
 					stat.Timeouts3++
 				} else {
 					fmt.Printf("%v %v\n", resp.Name, resp.Error)
-					promRespErr.AddValue([]string{resp.Name, resp.Group}, 1)
 					stat.Errors++
 				}
 			}
@@ -219,24 +181,11 @@ func main() {
 	}
 
 	if *LISTEN_PORT == 0 {
-		recordMetrics(allServers, configsWithComma)
+		recordMetrics(allServers, configsWithComma, nil)
 	} else {
-		metrics := []*ping.PrometheusMetric{
-			&promRespErr,
-			&promRespTime,
-			&promConnTime,
-			&promRespTimeout,
-		}
-		http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
-			var resp strings.Builder
-			for _, metric := range metrics {
-				resp.WriteString(metric.GetString())
-			}
-			w.Write([]byte(resp.String()))
-		})
-
-		go recordMetrics(allServers, configsWithComma)
-		err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%v", *LISTEN_PORT), nil)
+		metrics := prometheus.NewResponseMetrics()
+		go recordMetrics(allServers, configsWithComma, metrics)
+		err := metrics.ListenAndServe(*LISTEN_PORT)
 		fmt.Println(err)
 	}
 }

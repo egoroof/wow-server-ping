@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -22,15 +21,15 @@ var STATS_INTERVAL = flag.Duration("stats-interval", time.Second*10, "how often 
 var STATS_COUNT = flag.Int("stats", 0, "how many stats to display before exit")
 var FILTER = flag.String("filter", "", "regexp for filter servers by name")
 
-func recordMetrics(servers []ping.Server, statsGroupOrder string, metrics *prometheus.ResponseMetrics) {
+func recordMetrics(servers []ping.Server, stats *ping.Store, prom *prometheus.ResponseMetrics) {
 	responseChan := make(chan ping.ServerResponse)
 
-	if metrics != nil {
-		metrics.Init(servers)
+	stats.Init(servers)
+	if prom != nil {
+		prom.Init(servers)
 	}
 
 	statsLogTime := time.Now()
-	statistics := make(map[string]ping.Statistics)
 	statsCount := 0
 	requestCount := 0
 	for {
@@ -44,43 +43,10 @@ func recordMetrics(servers []ping.Server, statsGroupOrder string, metrics *prome
 		for range servers {
 			resp := <-responseChan
 
-			statsKey := resp.Name + resp.Group
-			stat, statExist := statistics[statsKey]
-			if !statExist {
-				stat = ping.Statistics{
-					ServerName:  resp.Name,
-					ServerGroup: resp.Group,
-				}
+			stats.Update(resp)
+			if prom != nil {
+				prom.Update(resp)
 			}
-
-			if metrics != nil {
-				metrics.Update(resp)
-			}
-
-			if resp.ConnectDuration != 0 {
-				conn := int(resp.ConnectDuration.Milliseconds())
-				stat.ConnectDurations = append(stat.ConnectDurations, conn)
-			}
-
-			if resp.PingDuration != 0 {
-				ping := int(resp.PingDuration.Milliseconds())
-				stat.PingDurations = append(stat.PingDurations, ping)
-			}
-
-			if resp.Error != nil {
-				if errors.Is(resp.Error, ping.ErrConnectTimeout) {
-					stat.Timeouts1++
-				} else if errors.Is(resp.Error, ping.ErrServerMsgTimeout) {
-					stat.Timeouts2++
-				} else if errors.Is(resp.Error, ping.ErrTransferTimeout) {
-					stat.Timeouts3++
-				} else {
-					fmt.Printf("%v %v\n", resp.Name, resp.Error)
-					stat.Errors++
-				}
-			}
-
-			statistics[statsKey] = stat
 		}
 
 		if time.Now().After(statsLogTime.Add(*STATS_INTERVAL)) {
@@ -90,9 +56,9 @@ func recordMetrics(servers []ping.Server, statsGroupOrder string, metrics *prome
 				time.Now().Format(time.TimeOnly),
 				requestCount,
 			)
-			ping.PrintResults(statistics, statsGroupOrder)
+			stats.Print()
+			stats.Reset()
 			statsLogTime = time.Now()
-			statistics = make(map[string]ping.Statistics)
 			statsCount++
 			requestCount = 0
 
@@ -180,12 +146,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	stats := ping.NewStatsStore(configsWithComma)
 	if *LISTEN_PORT == 0 {
-		recordMetrics(allServers, configsWithComma, nil)
+		recordMetrics(allServers, stats, nil)
 	} else {
-		metrics := prometheus.NewResponseMetrics()
-		go recordMetrics(allServers, configsWithComma, metrics)
-		err := metrics.ListenAndServe(*LISTEN_PORT)
+		prom := prometheus.NewResponseMetrics()
+		go recordMetrics(allServers, stats, prom)
+		err := prom.ListenAndServe(*LISTEN_PORT)
 		fmt.Println(err)
 	}
 }

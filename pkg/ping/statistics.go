@@ -1,6 +1,7 @@
 package ping
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"slices"
@@ -26,12 +27,76 @@ type Statistics struct {
 	ConnectMAD int
 }
 
-func PrintResults(statistics map[string]Statistics, groupsOrder string) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	groups := strings.Split(groupsOrder, ",")
+type Store struct {
+	// key := server.Name + server.Group
+	stats map[string]Statistics
 
+	groups []string
+
+	writer *tabwriter.Writer
+}
+
+func NewStatsStore(groupsOrder string) *Store {
+	return &Store{
+		stats:  make(map[string]Statistics),
+		groups: strings.Split(groupsOrder, ","),
+		writer: tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0),
+	}
+}
+
+func (s *Store) Init(servers []Server) {
+	for _, server := range servers {
+		key := server.Name + server.Group
+		s.stats[key] = Statistics{
+			ServerName:  server.Name,
+			ServerGroup: server.Group,
+		}
+	}
+}
+
+func (s *Store) Update(resp ServerResponse) {
+	key := resp.Name + resp.Group
+	stat := s.stats[key]
+
+	if resp.ConnectDuration != 0 {
+		conn := int(resp.ConnectDuration.Milliseconds())
+		stat.ConnectDurations = append(stat.ConnectDurations, conn)
+	}
+
+	if resp.PingDuration != 0 {
+		ping := int(resp.PingDuration.Milliseconds())
+		stat.PingDurations = append(stat.PingDurations, ping)
+	}
+
+	if resp.Error != nil {
+		if errors.Is(resp.Error, ErrConnectTimeout) {
+			stat.Timeouts1++
+		} else if errors.Is(resp.Error, ErrServerMsgTimeout) {
+			stat.Timeouts2++
+		} else if errors.Is(resp.Error, ErrTransferTimeout) {
+			stat.Timeouts3++
+		} else {
+			// todo logger to a file ?
+			fmt.Printf("%v %v\n", resp.Name, resp.Error)
+			stat.Errors++
+		}
+	}
+
+	s.stats[key] = stat
+}
+
+func (s *Store) Reset() {
+	for key, elem := range s.stats {
+		s.stats[key] = Statistics{
+			ServerName:  elem.ServerName,
+			ServerGroup: elem.ServerGroup,
+		}
+	}
+}
+
+func (s *Store) Print() {
 	serverTableGroups := make(map[string][]Statistics)
-	for _, stats := range statistics {
+	for _, stats := range s.stats {
 		stats.PingMean = Mean(stats.PingDurations)
 		stats.PingMAD = MAD(stats.PingDurations)
 
@@ -57,12 +122,12 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 		})
 	}
 
-	for _, group := range groups {
+	for _, group := range s.groups {
 		if _, exist := serverTableGroups[group]; !exist {
 			// groups can be with zero realms due to filtering
 			continue
 		}
-		fmt.Fprintf(w, "Realm\tConn\t±\tPing\t±\tT1\tT2\tT3\tE\n")
+		fmt.Fprintf(s.writer, "Realm\tConn\t±\tPing\t±\tT1\tT2\tT3\tE\n")
 		for _, stats := range serverTableGroups[group] {
 			t1 := ""
 			t2 := ""
@@ -102,7 +167,7 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 			}
 
 			fmt.Fprintf(
-				w, "%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
+				s.writer, "%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
 				stats.ServerName,
 				connMean, connMad,
 				pingMean, pingMad,
@@ -110,8 +175,8 @@ func PrintResults(statistics map[string]Statistics, groupsOrder string) {
 			)
 		}
 		if len(serverTableGroups) > 1 {
-			fmt.Fprintf(w, "\n")
+			fmt.Fprintf(s.writer, "\n")
 		}
 	}
-	w.Flush()
+	s.writer.Flush()
 }

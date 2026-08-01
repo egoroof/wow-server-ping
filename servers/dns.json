@@ -1,0 +1,14 @@
+[
+    {
+        "name": "Google DNS",
+        "address": "8.8.8.8:443"
+    },
+    {
+        "name": "Cloudflare DNS",
+        "address": "1.1.1.1:443"
+    },
+    {
+        "name": "Quad9 DNS",
+        "address": "9.9.9.9:443"
+    }
+]

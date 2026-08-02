@@ -51,16 +51,16 @@ var cmsgPing = []byte{
 // Ping WoW server.
 // Deals with servers behind proxy.
 func PingWowServer(
-	name, group, address string,
+	server *Server,
 	timeout time.Duration,
 	respChan chan<- ServerResponse,
 ) {
 	resp := ServerResponse{
-		Name:  name,
-		Group: group,
+		Name:  server.Name,
+		Group: server.Group,
 	}
 	startTime := time.Now()
-	conn, err := net.DialTimeout("tcp", address, timeout)
+	conn, err := net.DialTimeout("tcp", server.Address, timeout)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, os.ErrDeadlineExceeded) {
 			resp.Error = ErrConnectTimeout
@@ -80,6 +80,11 @@ func PingWowServer(
 		return
 	}
 	resp.ConnectDuration = connectDuration
+
+	if server.ConnectOnly {
+		respChan <- resp
+		return
+	}
 
 	buf := make([]byte, 64)
 	conn.SetDeadline(time.Now().Add(timeout))

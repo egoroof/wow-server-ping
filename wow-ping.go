@@ -35,9 +35,7 @@ func recordMetrics(servers []ping.Server, stats *ping.Store, prom *prometheus.Re
 	for {
 		requestCount++
 		for _, server := range servers {
-			go ping.PingWowServer(
-				server.Name, server.Group, server.Address, *PING_TIMEOUT, responseChan,
-			)
+			go ping.PingWowServer(&server, *PING_TIMEOUT, responseChan)
 		}
 
 		for range servers {

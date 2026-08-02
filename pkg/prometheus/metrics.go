@@ -72,30 +72,30 @@ func (m *ResponseMetrics) Init(servers []ping.Server) {
 	}
 }
 
-func (m *ResponseMetrics) Update(resp ping.ServerResponse) {
-	if resp.ConnectDuration == 0 {
-		m.connTime.delete([]string{resp.Name, resp.Group})
+func (m *ResponseMetrics) Update(res ping.PingResult) {
+	if res.ConnectDuration == 0 {
+		m.connTime.delete([]string{res.Name, res.Group})
 	} else {
-		conn := int(resp.ConnectDuration.Milliseconds())
-		m.connTime.setValue([]string{resp.Name, resp.Group}, conn)
+		conn := int(res.ConnectDuration.Milliseconds())
+		m.connTime.setValue([]string{res.Name, res.Group}, conn)
 	}
 
-	if resp.PingDuration == 0 {
-		m.respTime.delete([]string{resp.Name, resp.Group})
+	if res.PingDuration == 0 {
+		m.respTime.delete([]string{res.Name, res.Group})
 	} else {
-		ping := int(resp.PingDuration.Milliseconds())
-		m.respTime.setValue([]string{resp.Name, resp.Group}, ping)
+		ping := int(res.PingDuration.Milliseconds())
+		m.respTime.setValue([]string{res.Name, res.Group}, ping)
 	}
 
-	if resp.Error != nil {
-		if errors.Is(resp.Error, ping.ErrConnectTimeout) {
-			m.respTimeout.addValue([]string{resp.Name, resp.Group, typeConnectTimeout}, 1)
-		} else if errors.Is(resp.Error, ping.ErrServerMsgTimeout) {
-			m.respTimeout.addValue([]string{resp.Name, resp.Group, typeServerMsgTimeout}, 1)
-		} else if errors.Is(resp.Error, ping.ErrTransferTimeout) {
-			m.respTimeout.addValue([]string{resp.Name, resp.Group, typeTransferTimeout}, 1)
+	if res.Error != nil {
+		if errors.Is(res.Error, ping.ErrConnectTimeout) {
+			m.respTimeout.addValue([]string{res.Name, res.Group, typeConnectTimeout}, 1)
+		} else if errors.Is(res.Error, ping.ErrServerMsgTimeout) {
+			m.respTimeout.addValue([]string{res.Name, res.Group, typeServerMsgTimeout}, 1)
+		} else if errors.Is(res.Error, ping.ErrTransferTimeout) {
+			m.respTimeout.addValue([]string{res.Name, res.Group, typeTransferTimeout}, 1)
 		} else {
-			m.respError.addValue([]string{resp.Name, resp.Group}, 1)
+			m.respError.addValue([]string{res.Name, res.Group}, 1)
 		}
 	}
 }

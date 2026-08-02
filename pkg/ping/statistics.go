@@ -54,30 +54,30 @@ func (s *Store) Init(servers []Server) {
 	}
 }
 
-func (s *Store) Update(resp ServerResponse) {
-	key := resp.Name + resp.Group
+func (s *Store) Update(res PingResult) {
+	key := res.Name + res.Group
 	stat := s.stats[key]
 
-	if resp.ConnectDuration != 0 {
-		conn := int(resp.ConnectDuration.Milliseconds())
+	if res.ConnectDuration != 0 {
+		conn := int(res.ConnectDuration.Milliseconds())
 		stat.ConnectDurations = append(stat.ConnectDurations, conn)
 	}
 
-	if resp.PingDuration != 0 {
-		ping := int(resp.PingDuration.Milliseconds())
+	if res.PingDuration != 0 {
+		ping := int(res.PingDuration.Milliseconds())
 		stat.PingDurations = append(stat.PingDurations, ping)
 	}
 
-	if resp.Error != nil {
-		if errors.Is(resp.Error, ErrConnectTimeout) {
+	if res.Error != nil {
+		if errors.Is(res.Error, ErrConnectTimeout) {
 			stat.Timeouts1++
-		} else if errors.Is(resp.Error, ErrServerMsgTimeout) {
+		} else if errors.Is(res.Error, ErrServerMsgTimeout) {
 			stat.Timeouts2++
-		} else if errors.Is(resp.Error, ErrTransferTimeout) {
+		} else if errors.Is(res.Error, ErrTransferTimeout) {
 			stat.Timeouts3++
 		} else {
 			// todo logger to a file ?
-			fmt.Printf("%v %v\n", resp.Name, resp.Error)
+			fmt.Printf("%v %v\n", res.Name, res.Error)
 			stat.Errors++
 		}
 	}

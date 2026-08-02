@@ -18,7 +18,7 @@ var ErrConnectTimeout = errors.New("connect timeout")
 var ErrServerMsgTimeout = errors.New("server message timeout")
 var ErrTransferTimeout = errors.New("transfer timeout")
 
-type ServerResponse struct {
+type PingResult struct {
 	Name  string
 	Group string
 
@@ -53,9 +53,9 @@ var cmsgPing = []byte{
 func PingWowServer(
 	server *Server,
 	timeout time.Duration,
-	respChan chan<- ServerResponse,
+	respChan chan<- PingResult,
 ) {
-	resp := ServerResponse{
+	res := PingResult{
 		Name:  server.Name,
 		Group: server.Group,
 	}
@@ -63,26 +63,26 @@ func PingWowServer(
 	conn, err := net.DialTimeout("tcp", server.Address, timeout)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, os.ErrDeadlineExceeded) {
-			resp.Error = ErrConnectTimeout
-			respChan <- resp
+			res.Error = ErrConnectTimeout
+			respChan <- res
 			return
 		}
-		resp.Error = err
-		respChan <- resp
+		res.Error = err
+		respChan <- res
 		return
 	}
 	defer conn.Close()
 
 	connectDuration := time.Since(startTime)
 	if connectDuration > timeout {
-		resp.Error = ErrConnectTimeout
-		respChan <- resp
+		res.Error = ErrConnectTimeout
+		respChan <- res
 		return
 	}
-	resp.ConnectDuration = connectDuration
+	res.ConnectDuration = connectDuration
 
 	if server.ConnectOnly {
-		respChan <- resp
+		respChan <- res
 		return
 	}
 
@@ -91,29 +91,29 @@ func PingWowServer(
 	bytesRead, err := conn.Read(buf)
 	if err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
-			resp.Error = ErrServerMsgTimeout
-			respChan <- resp
+			res.Error = ErrServerMsgTimeout
+			respChan <- res
 			return
 		}
-		resp.Error = err
-		respChan <- resp
+		res.Error = err
+		respChan <- res
 		return
 	}
 
 	if bytesRead >= len(buf) {
-		resp.Error = ErrResponseBodyBig
-		respChan <- resp
+		res.Error = ErrResponseBodyBig
+		respChan <- res
 		return
 	}
 
 	if !bytes.Equal(smsgAuthChallenge, buf[0:8]) {
 		if bytes.Equal(smsgAuthResponseReject, buf[0:5]) {
-			resp.Error = ErrIpTemporarelyBlocked
-			respChan <- resp
+			res.Error = ErrIpTemporarelyBlocked
+			respChan <- res
 			return
 		}
-		resp.Error = ErrInvalidResponse
-		respChan <- resp
+		res.Error = ErrInvalidResponse
+		respChan <- res
 		return
 	}
 
@@ -122,12 +122,12 @@ func PingWowServer(
 	_, err = conn.Write(cmsgPing)
 	if err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
-			resp.Error = ErrTransferTimeout
-			respChan <- resp
+			res.Error = ErrTransferTimeout
+			respChan <- res
 			return
 		}
-		resp.Error = err
-		respChan <- resp
+		res.Error = err
+		respChan <- res
 		return
 	}
 
@@ -137,30 +137,30 @@ func PingWowServer(
 
 	// expect the server to close connection
 	if err == nil || bytesRead > 0 {
-		resp.Error = ErrInvalidResponse
-		respChan <- resp
+		res.Error = ErrInvalidResponse
+		respChan <- res
 		return
 	}
 
 	if errors.Is(err, os.ErrDeadlineExceeded) {
-		resp.Error = ErrTransferTimeout
-		respChan <- resp
+		res.Error = ErrTransferTimeout
+		respChan <- res
 		return
 	}
 
 	if !errors.Is(err, io.EOF) {
-		resp.Error = err
-		respChan <- resp
+		res.Error = err
+		respChan <- res
 		return
 	}
 
 	respDuration := time.Since(writeTime)
 	if respDuration > timeout {
-		resp.Error = ErrTransferTimeout
-		respChan <- resp
+		res.Error = ErrTransferTimeout
+		respChan <- res
 		return
 	}
 
-	resp.PingDuration = respDuration
-	respChan <- resp
+	res.PingDuration = respDuration
+	respChan <- res
 }

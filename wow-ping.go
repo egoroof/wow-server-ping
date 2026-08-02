@@ -22,7 +22,7 @@ var STATS_COUNT = flag.Int("stats", 0, "how many stats to display before exit")
 var FILTER = flag.String("filter", "", "regexp for filter servers by name")
 
 func recordMetrics(servers []ping.Server, stats *ping.Store, prom *prometheus.ResponseMetrics) {
-	responseChan := make(chan ping.ServerResponse)
+	resChan := make(chan ping.PingResult)
 
 	stats.Init(servers)
 	if prom != nil {
@@ -35,11 +35,11 @@ func recordMetrics(servers []ping.Server, stats *ping.Store, prom *prometheus.Re
 	for {
 		requestCount++
 		for _, server := range servers {
-			go ping.PingWowServer(&server, *PING_TIMEOUT, responseChan)
+			go ping.PingWowServer(&server, *PING_TIMEOUT, resChan)
 		}
 
 		for range servers {
-			resp := <-responseChan
+			resp := <-resChan
 
 			stats.Update(resp)
 			if prom != nil {

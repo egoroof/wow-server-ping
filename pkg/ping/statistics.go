@@ -29,7 +29,7 @@ type Statistics struct {
 
 type Store struct {
 	// key := server.Name + server.Group
-	stats map[string]Statistics
+	stats map[string]*Statistics
 
 	groups []string
 
@@ -38,23 +38,23 @@ type Store struct {
 
 func NewStatsStore(groupsOrder string) *Store {
 	return &Store{
-		stats:  make(map[string]Statistics),
+		stats:  make(map[string]*Statistics),
 		groups: strings.Split(groupsOrder, ","),
 		writer: tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0),
 	}
 }
 
-func (s *Store) Init(servers []Server) {
+func (s *Store) Init(servers []*Server) {
 	for _, server := range servers {
 		key := server.Name + server.Group
-		s.stats[key] = Statistics{
+		s.stats[key] = &Statistics{
 			ServerName:  server.Name,
 			ServerGroup: server.Group,
 		}
 	}
 }
 
-func (s *Store) Update(res PingResult) {
+func (s *Store) Update(res *PingResult) {
 	key := res.Name + res.Group
 	stat := s.stats[key]
 
@@ -87,7 +87,7 @@ func (s *Store) Update(res PingResult) {
 
 func (s *Store) Reset() {
 	for key, elem := range s.stats {
-		s.stats[key] = Statistics{
+		s.stats[key] = &Statistics{
 			ServerName:  elem.ServerName,
 			ServerGroup: elem.ServerGroup,
 		}
@@ -95,7 +95,7 @@ func (s *Store) Reset() {
 }
 
 func (s *Store) Print() {
-	serverTableGroups := make(map[string][]Statistics)
+	serverTableGroups := make(map[string][]*Statistics)
 	for _, stats := range s.stats {
 		stats.PingMean = Mean(stats.PingDurations)
 		stats.PingMAD = MAD(stats.PingDurations)
@@ -106,7 +106,7 @@ func (s *Store) Print() {
 		serverTableGroups[stats.ServerGroup] = append(serverTableGroups[stats.ServerGroup], stats)
 	}
 	for group := range serverTableGroups {
-		slices.SortFunc(serverTableGroups[group], func(a, b Statistics) int {
+		slices.SortFunc(serverTableGroups[group], func(a, b *Statistics) int {
 			if a.Errors-b.Errors != 0 {
 				return a.Errors - b.Errors
 			}

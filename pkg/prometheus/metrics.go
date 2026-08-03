@@ -63,7 +63,7 @@ func (m *ResponseMetrics) ListenAndServe(port int) error {
 	return http.ListenAndServe(fmt.Sprintf("127.0.0.1:%v", port), nil)
 }
 
-func (m *ResponseMetrics) Init(servers []ping.Server) {
+func (m *ResponseMetrics) Init(servers []*ping.Server) {
 	for _, server := range servers {
 		m.respTimeout.setValue([]string{server.Name, server.Group, typeConnectTimeout}, 0)
 		m.respError.setValue([]string{server.Name, server.Group}, 0)
@@ -75,7 +75,7 @@ func (m *ResponseMetrics) Init(servers []ping.Server) {
 	}
 }
 
-func (m *ResponseMetrics) Update(res ping.PingResult) {
+func (m *ResponseMetrics) Update(res *ping.PingResult) {
 	if res.ConnectDuration == 0 {
 		m.connTime.delete([]string{res.Name, res.Group})
 	} else {

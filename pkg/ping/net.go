@@ -53,9 +53,9 @@ var cmsgPing = []byte{
 func PingWowServer(
 	server *Server,
 	timeout time.Duration,
-	respChan chan<- PingResult,
+	respChan chan<- *PingResult,
 ) {
-	res := PingResult{
+	res := &PingResult{
 		Name:  server.Name,
 		Group: server.Group,
 	}

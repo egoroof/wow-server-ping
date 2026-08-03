@@ -21,8 +21,12 @@ var STATS_INTERVAL = flag.Duration("stats-interval", time.Second*10, "how often 
 var STATS_COUNT = flag.Int("stats", 0, "how many stats to display before exit")
 var FILTER = flag.String("filter", "", "regexp for filter servers by name")
 
-func recordMetrics(servers []ping.Server, stats *ping.Store, prom *prometheus.ResponseMetrics) {
-	resChan := make(chan ping.PingResult)
+func recordMetrics(
+	servers []*ping.Server,
+	stats *ping.Store,
+	prom *prometheus.ResponseMetrics,
+) {
+	resChan := make(chan *ping.PingResult)
 
 	stats.Init(servers)
 	if prom != nil {
@@ -35,15 +39,15 @@ func recordMetrics(servers []ping.Server, stats *ping.Store, prom *prometheus.Re
 	for {
 		requestCount++
 		for _, server := range servers {
-			go ping.PingWowServer(&server, *PING_TIMEOUT, resChan)
+			go ping.PingWowServer(server, *PING_TIMEOUT, resChan)
 		}
 
 		for range servers {
-			resp := <-resChan
+			res := <-resChan
 
-			stats.Update(resp)
+			stats.Update(res)
 			if prom != nil {
-				prom.Update(resp)
+				prom.Update(res)
 			}
 		}
 
@@ -108,7 +112,7 @@ func main() {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	var allServers []ping.Server
+	var allServers []*ping.Server
 	for _, configName := range configs {
 		serversPath := fmt.Sprintf("./servers/%v.json", configName)
 		fmt.Printf("\nRealm list %v\n", serversPath)
@@ -134,7 +138,7 @@ func main() {
 			fmt.Fprintf(w, "%v\t%v\n", server.Name, server.Address)
 
 			server.Group = configName
-			allServers = append(allServers, server)
+			allServers = append(allServers, &server)
 		}
 		w.Flush()
 	}

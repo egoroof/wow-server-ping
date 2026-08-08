@@ -24,6 +24,7 @@ var FILTER = flag.String("filter", "", "regexp for filter servers by name")
 func recordMetrics(
 	servers []*ping.Server,
 	stats *ping.Store,
+	logger *ping.ErrorLogger,
 	prom *prometheus.ResponseMetrics,
 ) {
 	resChan := make(chan *ping.PingResult)
@@ -49,6 +50,8 @@ func recordMetrics(
 			if prom != nil {
 				prom.Update(res)
 			}
+
+			logger.Log(res)
 		}
 
 		if time.Now().After(statsLogTime.Add(*STATS_INTERVAL)) {
@@ -63,6 +66,7 @@ func recordMetrics(
 			statsLogTime = time.Now()
 			statsCount++
 			requestCount = 0
+			logger.Reset()
 
 			if *STATS_COUNT == statsCount {
 				fmt.Println("Exiting due to stats count flag is set and reached")
@@ -149,11 +153,12 @@ func main() {
 	}
 
 	stats := ping.NewStatsStore(configsWithComma)
+	logger := ping.NewErrorLogger()
 	if *LISTEN_PORT == 0 {
-		recordMetrics(allServers, stats, nil)
+		recordMetrics(allServers, stats, logger, nil)
 	} else {
 		prom := prometheus.NewResponseMetrics()
-		go recordMetrics(allServers, stats, prom)
+		go recordMetrics(allServers, stats, logger, prom)
 		err := prom.ListenAndServe(*LISTEN_PORT)
 		fmt.Println(err)
 	}

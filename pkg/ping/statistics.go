@@ -76,8 +76,6 @@ func (s *Store) Update(res *PingResult) {
 		} else if errors.Is(res.Error, ErrTransferTimeout) {
 			stat.Timeouts3++
 		} else {
-			// todo logger to a file ?
-			fmt.Printf("%v %v\n", res.Name, res.Error)
 			stat.Errors++
 		}
 	}

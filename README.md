@@ -9,12 +9,13 @@ Ping tool for World of Warcraft 3.3.5a servers. Correctly measures ping to serve
 
 Definitions:
 
-- `Conn` - mean connect time to game server in milliseconds
-- `Ping` - mean ping time to game server in milliseconds
-- `±` - mean absolute deviation of `Conn` and `Ping`
-- `T1` - timeouts during initial TCP connection
-- `T2` - timeouts after `T1` and until receiving first server message
-- `T3` - timeouts after `T2`, during sending a message to the server and until server connection close
+- `Conn` - mean connect time to WoW server in milliseconds
+- `Hand` - mean handshake time with WoW server in milliseconds
+- `Ping` - mean ping time to WoW server in milliseconds
+- `±` - mean absolute deviation of `Conn`, `Hand` and `Ping`
+- `T1` - timeouts during initial TCP connection (`Conn`)
+- `T2` - timeouts after `T1` and until receiving the first server message (`Hand`)
+- `T3` - timeouts after `T2`, during sending a message to the server and until receiving server response message (`Ping`)
 - `E` - errors
 
 It can work as a [Prometheus](https://prometheus.io) metrics exporter and display graphics in [Grafana](https://grafana.com/oss/grafana/):
@@ -82,7 +83,8 @@ Network requests during a single ping process:
 8. You -> packet `CMSG_AUTH_SESSION` -> Proxy -> Server
 9. Server -> packet `SMSG_AUTH_RESPONSE` -> Proxy -> You
 
-Сonnection time (`Conn`) measured from steps 1 - 2 and server ping (`Ping`) from steps 8 - 9.
+
+Сonnection time (`Conn`) is measured from steps 1 - 2, handshake time (`Hand`) is measured from steps 3 - 7 and server ping (`Ping`) from steps 8 - 9.
 
 Timeouts can be helpful for debugging packet losses. There are 3 types of timeouts:
 

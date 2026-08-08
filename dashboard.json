@@ -3,8 +3,8 @@
   "kind": "Dashboard",
   "metadata": {
     "name": "adpls9v",
-    "generation": 33,
-    "creationTimestamp": "2026-04-27T11:48:46Z",
+    "generation": 2,
+    "creationTimestamp": "2026-08-07T05:35:43Z",
     "labels": {},
     "annotations": {}
   },
@@ -17,10 +17,7 @@
             "kind": "DataQuery",
             "group": "grafana",
             "version": "v0",
-            "spec": {},
-            "labels": {
-              "grafana.app/export-label": "grafana-1"
-            }
+            "spec": {}
           },
           "enable": true,
           "hide": true,
@@ -78,7 +75,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.1.0",
+            "version": "13.1.3",
             "spec": {
               "options": {
                 "annotations": {
@@ -207,7 +204,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.1.0",
+            "version": "13.1.3",
             "spec": {
               "options": {
                 "annotations": {
@@ -334,7 +331,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.1.0",
+            "version": "13.1.3",
             "spec": {
               "options": {
                 "annotations": {
@@ -463,7 +460,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.1.0",
+            "version": "13.1.3",
             "spec": {
               "options": {
                 "annotations": {
@@ -553,7 +550,7 @@
         "kind": "Panel",
         "spec": {
           "id": 5,
-          "title": "Server message timeouts (T2)",
+          "title": "Handshake timeouts (T2)",
           "description": "",
           "links": [],
           "data": {
@@ -569,7 +566,7 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "builder",
-                        "expr": "rate(wow_server_timeout_count{group=~\"$group\", type=\"serverMsg\", server=~\"$realms\"}[$interval])",
+                        "expr": "rate(wow_server_timeout_count{group=~\"$group\", type=\"handshake\", server=~\"$realms\"}[$interval])",
                         "legendFormat": "{{server}}",
                         "range": true
                       },
@@ -592,7 +589,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.1.0",
+            "version": "13.1.3",
             "spec": {
               "options": {
                 "annotations": {
@@ -719,7 +716,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.1.0",
+            "version": "13.1.3",
             "spec": {
               "options": {
                 "annotations": {
@@ -802,6 +799,137 @@
             }
           }
         }
+      },
+      "panel-7": {
+        "kind": "Panel",
+        "spec": {
+          "id": 7,
+          "title": "Handshake time",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "spec": {
+                        "editorMode": "builder",
+                        "exemplar": false,
+                        "expr": "avg_over_time(wow_server_handshake_time_ms{group=~\"$group\", server=~\"$realms\"}[$interval])",
+                        "instant": false,
+                        "legendFormat": "{{server}}",
+                        "range": true
+                      },
+                      "labels": {
+                        "grafana.app/export-label": "prometheus-1",
+                        "grafana.app/export-datasource-name": "prometheus"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {
+                "interval": "1s"
+              }
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "timeseries",
+            "version": "13.1.3",
+            "spec": {
+              "options": {
+                "annotations": {
+                  "clustering": -1,
+                  "multiLane": false
+                },
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "enableFacetedFilter": false,
+                  "overflow": "ellipsis",
+                  "placement": "bottom",
+                  "showLegend": true,
+                  "sortBy": "Mean",
+                  "sortDesc": false
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "multi",
+                  "sort": "asc"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "ms",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineStyle": {
+                      "fill": "solid"
+                    },
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
       }
     },
     "layout": {
@@ -830,7 +958,7 @@
               "height": 9,
               "element": {
                 "kind": "ElementReference",
-                "name": "panel-4"
+                "name": "panel-2"
               }
             }
           },
@@ -840,10 +968,10 @@
               "x": 0,
               "y": 9,
               "width": 12,
-              "height": 8,
+              "height": 9,
               "element": {
                 "kind": "ElementReference",
-                "name": "panel-2"
+                "name": "panel-7"
               }
             }
           },
@@ -853,7 +981,7 @@
               "x": 12,
               "y": 9,
               "width": 12,
-              "height": 8,
+              "height": 9,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-5"
@@ -864,9 +992,22 @@
             "kind": "GridLayoutItem",
             "spec": {
               "x": 0,
-              "y": 17,
+              "y": 18,
               "width": 12,
-              "height": 8,
+              "height": 9,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-4"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 18,
+              "width": 12,
+              "height": 9,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-6"
@@ -877,7 +1018,7 @@
             "kind": "GridLayoutItem",
             "spec": {
               "x": 12,
-              "y": 17,
+              "y": 27,
               "width": 12,
               "height": 8,
               "element": {
@@ -983,7 +1124,7 @@
             "value": ""
           },
           "hide": "dontHide",
-          "refresh": "onTimeRangeChanged",
+          "refresh": "onDashboardLoad",
           "skipUrlSync": false,
           "query": {
             "kind": "DataQuery",
@@ -1018,7 +1159,7 @@
             "value": ""
           },
           "hide": "dontHide",
-          "refresh": "onTimeRangeChanged",
+          "refresh": "onDashboardLoad",
           "skipUrlSync": false,
           "query": {
             "kind": "DataQuery",

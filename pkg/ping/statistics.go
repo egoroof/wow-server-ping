@@ -11,20 +11,25 @@ import (
 )
 
 type Statistics struct {
-	ServerName       string
-	ServerGroup      string
-	PingDurations    []int
-	ConnectDurations []int
-	Errors           int
-	Timeouts1        int
-	Timeouts2        int
-	Timeouts3        int
+	ServerName  string
+	ServerGroup string
 
-	PingMean    int
-	ConnectMean int
+	PingDurations      []int
+	ConnectDurations   []int
+	HandshakeDurations []int
 
-	PingMAD    int
-	ConnectMAD int
+	Errors    int
+	Timeouts1 int
+	Timeouts2 int
+	Timeouts3 int
+
+	PingMean      int
+	ConnectMean   int
+	HandshakeMean int
+
+	PingMAD      int
+	ConnectMAD   int
+	HandshakeMAD int
 }
 
 type Store struct {
@@ -63,6 +68,11 @@ func (s *Store) Update(res *PingResult) {
 		stat.ConnectDurations = append(stat.ConnectDurations, conn)
 	}
 
+	if res.HandshakeDuration != 0 {
+		handshake := int(res.HandshakeDuration.Milliseconds())
+		stat.HandshakeDurations = append(stat.HandshakeDurations, handshake)
+	}
+
 	if res.PingDuration != 0 {
 		ping := int(res.PingDuration.Milliseconds())
 		stat.PingDurations = append(stat.PingDurations, ping)
@@ -71,7 +81,7 @@ func (s *Store) Update(res *PingResult) {
 	if res.Error != nil {
 		if errors.Is(res.Error, ErrConnectTimeout) {
 			stat.Timeouts1++
-		} else if errors.Is(res.Error, ErrServerMsgTimeout) {
+		} else if errors.Is(res.Error, ErrHandshakeTimeout) {
 			stat.Timeouts2++
 		} else if errors.Is(res.Error, ErrTransferTimeout) {
 			stat.Timeouts3++
@@ -100,6 +110,9 @@ func (s *Store) Print() {
 
 		stats.ConnectMean = Mean(stats.ConnectDurations)
 		stats.ConnectMAD = MAD(stats.ConnectDurations)
+
+		stats.HandshakeMean = Mean(stats.HandshakeDurations)
+		stats.HandshakeMAD = MAD(stats.HandshakeDurations)
 
 		serverTableGroups[stats.ServerGroup] = append(serverTableGroups[stats.ServerGroup], stats)
 	}
@@ -131,7 +144,7 @@ func (s *Store) Print() {
 			// groups can be with zero realms due to filtering
 			continue
 		}
-		fmt.Fprintf(s.writer, "Realm\tConn\t±\tPing\t±\tT1\tT2\tT3\tE\n")
+		fmt.Fprintf(s.writer, "Realm\tConn\t±\tHand\t±\tPing\t±\tT1\tT2\tT3\tE\n")
 		for _, stats := range serverTableGroups[group] {
 			t1 := ""
 			t2 := ""
@@ -160,6 +173,16 @@ func (s *Store) Print() {
 				connMean = "<1"
 			}
 
+			handshakeMean := strconv.Itoa(stats.HandshakeMean)
+			handshakeMad := strconv.Itoa(stats.HandshakeMAD)
+
+			if len(stats.HandshakeDurations) == 0 {
+				handshakeMean = "-"
+				handshakeMad = ""
+			} else if stats.HandshakeMean == 0 {
+				handshakeMean = "<1"
+			}
+
 			pingMean := strconv.Itoa(stats.PingMean)
 			pingMad := strconv.Itoa(stats.PingMAD)
 
@@ -171,9 +194,10 @@ func (s *Store) Print() {
 			}
 
 			fmt.Fprintf(
-				s.writer, "%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
+				s.writer, "%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
 				stats.ServerName,
 				connMean, connMad,
+				handshakeMean, handshakeMad,
 				pingMean, pingMad,
 				t1, t2, t3, e,
 			)

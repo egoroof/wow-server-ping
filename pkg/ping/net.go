@@ -14,16 +14,17 @@ var ErrIpTemporarelyBlocked = errors.New("your ip is temporarely blocked")
 var ErrResponseBodyBig = errors.New("response body too big")
 
 var ErrConnectTimeout = errors.New("connect timeout")
-var ErrServerMsgTimeout = errors.New("server message timeout")
+var ErrHandshakeTimeout = errors.New("handshake timeout")
 var ErrTransferTimeout = errors.New("transfer timeout")
 
 type PingResult struct {
 	Name  string
 	Group string
 
-	ConnectDuration time.Duration
-	PingDuration    time.Duration
-	Error           error
+	ConnectDuration   time.Duration
+	HandshakeDuration time.Duration
+	PingDuration      time.Duration
+	Error             error
 }
 
 var smsgAuthChallenge = []byte{
@@ -84,10 +85,11 @@ func PingWowServer(
 
 	buf := make([]byte, 64)
 	conn.SetDeadline(time.Now().Add(timeout))
+	readTime := time.Now()
 	bytesRead, err := conn.Read(buf)
 	if err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
-			res.Error = ErrServerMsgTimeout
+			res.Error = ErrHandshakeTimeout
 			respChan <- res
 			return
 		}
@@ -95,6 +97,14 @@ func PingWowServer(
 		respChan <- res
 		return
 	}
+
+	handshakeDuration := time.Since(readTime)
+	if handshakeDuration > timeout {
+		res.Error = ErrHandshakeTimeout
+		respChan <- res
+		return
+	}
+	res.HandshakeDuration = handshakeDuration
 
 	if bytesRead >= len(buf) {
 		res.Error = ErrResponseBodyBig

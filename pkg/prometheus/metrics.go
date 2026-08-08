@@ -10,11 +10,12 @@ import (
 )
 
 const typeConnectTimeout = "connect"
-const typeServerMsgTimeout = "serverMsg"
+const typeHandshakeTimeout = "handshake"
 const typeTransferTimeout = "transfer"
 
 type ResponseMetrics struct {
 	connTime    metric
+	handTime    metric
 	respTime    metric
 	respTimeout metric
 	respError   metric
@@ -25,6 +26,12 @@ func NewResponseMetrics() *ResponseMetrics {
 		connTime: metric{
 			name:       "wow_server_connect_time_ms",
 			help:       "WoW server connect time in ms",
+			typee:      "gauge",
+			labelNames: []string{"server", "group"},
+		},
+		handTime: metric{
+			name:       "wow_server_handshake_time_ms",
+			help:       "WoW server handshake time in ms",
 			typee:      "gauge",
 			labelNames: []string{"server", "group"},
 		},
@@ -56,6 +63,7 @@ func (m *ResponseMetrics) ListenAndServe(port int) error {
 		resp.WriteString(m.respError.string())
 		resp.WriteString(m.respTime.string())
 		resp.WriteString(m.connTime.string())
+		resp.WriteString(m.handTime.string())
 		resp.WriteString(m.respTimeout.string())
 		w.Write([]byte(resp.String()))
 	})
@@ -69,7 +77,7 @@ func (m *ResponseMetrics) Init(servers []*ping.Server) {
 		m.respError.setValue([]string{server.Name, server.Group}, 0)
 
 		if !server.ConnectOnly {
-			m.respTimeout.setValue([]string{server.Name, server.Group, typeServerMsgTimeout}, 0)
+			m.respTimeout.setValue([]string{server.Name, server.Group, typeHandshakeTimeout}, 0)
 			m.respTimeout.setValue([]string{server.Name, server.Group, typeTransferTimeout}, 0)
 		}
 	}
@@ -83,6 +91,13 @@ func (m *ResponseMetrics) Update(res *ping.PingResult) {
 		m.connTime.setValue([]string{res.Name, res.Group}, conn)
 	}
 
+	if res.HandshakeDuration == 0 {
+		m.handTime.delete([]string{res.Name, res.Group})
+	} else {
+		hand := int(res.HandshakeDuration.Milliseconds())
+		m.handTime.setValue([]string{res.Name, res.Group}, hand)
+	}
+
 	if res.PingDuration == 0 {
 		m.respTime.delete([]string{res.Name, res.Group})
 	} else {
@@ -93,8 +108,8 @@ func (m *ResponseMetrics) Update(res *ping.PingResult) {
 	if res.Error != nil {
 		if errors.Is(res.Error, ping.ErrConnectTimeout) {
 			m.respTimeout.addValue([]string{res.Name, res.Group, typeConnectTimeout}, 1)
-		} else if errors.Is(res.Error, ping.ErrServerMsgTimeout) {
-			m.respTimeout.addValue([]string{res.Name, res.Group, typeServerMsgTimeout}, 1)
+		} else if errors.Is(res.Error, ping.ErrHandshakeTimeout) {
+			m.respTimeout.addValue([]string{res.Name, res.Group, typeHandshakeTimeout}, 1)
 		} else if errors.Is(res.Error, ping.ErrTransferTimeout) {
 			m.respTimeout.addValue([]string{res.Name, res.Group, typeTransferTimeout}, 1)
 		} else {

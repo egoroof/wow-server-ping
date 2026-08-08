@@ -20,7 +20,7 @@ func NewErrorLogger() *ErrorLogger {
 func (s *ErrorLogger) Log(res *PingResult) {
 	if res.Error == nil ||
 		errors.Is(res.Error, ErrConnectTimeout) ||
-		errors.Is(res.Error, ErrServerMsgTimeout) ||
+		errors.Is(res.Error, ErrHandshakeTimeout) ||
 		errors.Is(res.Error, ErrTransferTimeout) {
 		return
 	}

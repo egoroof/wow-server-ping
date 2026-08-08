@@ -159,6 +159,9 @@ func acceptWorldConnection(listener net.Listener, accepted chan<- bool) {
 func handleWorldConnection(conn net.Conn) {
 	defer conn.Close()
 
+	// handshake delay
+	time.Sleep(time.Millisecond * 10)
+
 	cmd := []byte{
 		0, 42, // BE size
 		236, 1, // LE opcode 0x1EC SMSG_AUTH_CHALLENGE
@@ -180,5 +183,16 @@ func handleWorldConnection(conn net.Conn) {
 	}
 
 	// ping delay
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(time.Millisecond * 20)
+
+	cmd = []byte{
+		0, 3, // BE size
+		238, 1, // LE opcode 0x1EE SMSG_AUTH_RESPONSE
+		21, // result AUTH_UNKNOWN_ACCOUNT
+	}
+	_, err = conn.Write(cmd)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }

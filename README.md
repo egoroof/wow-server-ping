@@ -59,7 +59,7 @@ Windows builds comes with some `.bat` files which you can use or make similar fo
 | Flag | Default | Description |
 |---|---|---|
 | `-port` | - | Listen port for Prometheus metrics |
-| `-timeout` | `1s` | Ping timeout |
+| `-timeout` | `3s` | Ping timeout |
 | `-interval` | `500ms` | Sleep time between requests |
 | `-stats-interval` | `10s` | How often stats should be printed to console |
 | `-stats` | - | How many stats to display before exit |

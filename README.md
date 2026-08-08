@@ -66,9 +66,11 @@ Windows builds comes with some `.bat` files which you can use or make similar fo
 
 ### Ping process
 
-#### Behind proxy
+We suppose a WoW server can be behind a proxy or a client can use VPN.
+That's why a simple ICMP or TCP ping isn't enough.
+We need to send and recieve a packet after handshake established to measure ping correctly.
 
-Network requests during single ping process:
+Network requests during a single ping process:
 
 1. You -> TCP SYN -> Proxy
 2. Proxy -> TCP SYN-ACK -> You
@@ -77,11 +79,8 @@ Network requests during single ping process:
 5. Server -> TCP SYN-ACK -> Proxy
 6. Proxy -> TCP ACK -> Server
 7. Server -> packet `SMSG_AUTH_CHALLENGE` -> Proxy -> You
-8. You -> packet `CMSG_PING` -> Proxy -> Server
-9. Server -> TCP FIN -> Proxy -> You
-10. You -> TCP FIN -> Proxy -> Server
-
-Some not important acknowledge requests hidden for simplicity.
+8. You -> packet `CMSG_AUTH_SESSION` -> Proxy -> Server
+9. Server -> packet `SMSG_AUTH_RESPONSE` -> Proxy -> You
 
 Сonnection time (`Conn`) measured from steps 1 - 2 and server ping (`Ping`) from steps 8 - 9.
 
@@ -90,26 +89,6 @@ Timeouts can be helpful for debugging packet losses. There are 3 types of timeou
 - `T1` - if happen in steps 1 - 2 (you - proxy)
 - `T2` - if happen in steps 3 - 7 (proxy - server)
 - `T3` - if happen in steps 8 - 9 (you - server)
-
-#### Without proxy
-
-1. You -> TCP SYN -> Server
-2. Server -> TCP SYN-ACK -> You
-3. You -> TCP ACK -> Server
-4. Server -> packet `SMSG_AUTH_CHALLENGE` -> You
-5. You -> packet `CMSG_PING` -> Server
-6. Server -> TCP FIN -> You
-7. You -> TCP FIN -> Server
-
-Connection time (`Conn`) measured from step 1 - 2 and server ping (`Ping`) from steps 5 - 6.
-
-Without a proxy the `Conn` and `Ping` values should be almost the same. But we don't know about proxy and we perform the same ping process as with a proxy.
-
-Timeouts:
-
-- `T1` - if happen in steps 1 - 2
-- `T2` - if happen in steps 3 - 4
-- `T3` - if happen in steps 5 - 6
 
 ## Antivirus reaction
 

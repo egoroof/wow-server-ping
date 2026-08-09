@@ -13,14 +13,12 @@ Definitions:
 - `Hand` - mean handshake time with WoW server in milliseconds
 - `Ping` - mean ping time to WoW server in milliseconds
 - `±` - mean absolute deviation of `Conn`, `Hand` and `Ping`
-- `T1` - timeouts during initial TCP connection (`Conn`)
-- `T2` - timeouts after `T1` and until receiving the first server message (`Hand`)
-- `T3` - timeouts after `T2`, during sending a message to the server and until receiving server response message (`Ping`)
+- `T1` - timeouts during connection
+- `T2` - timeouts during handshake
+- `T3` - timeouts during ping
 - `E` - errors
 
-It can work as a [Prometheus](https://prometheus.io) metrics exporter and display graphics in [Grafana](https://grafana.com/oss/grafana/):
-
-![grafana usage](./images/grafana.png)
+See [Ping process](#ping-process) for explanation about connection, handshake and ping.
 
 ## Usage
 
@@ -65,7 +63,7 @@ Windows builds comes with some `.bat` files which you can use or make similar fo
 | `-stats` | - | How many stats to display before exit |
 | `-filter` | - | Regexp for filter servers by name |
 
-### Ping process
+## Ping process
 
 We suppose a WoW server can be behind a proxy or a client can use VPN.
 That's why a simple ICMP or TCP ping isn't enough.
@@ -73,25 +71,33 @@ We need to send and recieve a packet after handshake established to measure ping
 
 Network requests during a single ping process:
 
-1. You -> TCP SYN -> Proxy
-2. Proxy -> TCP SYN-ACK -> You
-3. You -> TCP ACK -> Proxy
-4. Proxy -> TCP SYN -> Server
-5. Server -> TCP SYN-ACK -> Proxy
-6. Proxy -> TCP ACK -> Server
-7. Server -> packet `SMSG_AUTH_CHALLENGE` -> Proxy -> You
-8. You -> packet `CMSG_AUTH_SESSION` -> Proxy -> Server
-9. Server -> packet `SMSG_AUTH_RESPONSE` -> Proxy -> You
-
-
-Сonnection time (`Conn`) is measured from steps 1 - 2, handshake time (`Hand`) is measured from steps 3 - 7 and server ping (`Ping`) from steps 8 - 9.
-
-Timeouts can be helpful for debugging packet losses. There are 3 types of timeouts:
-
-- `T1` - if happen in steps 1 - 2 (you - proxy)
-- `T2` - if happen in steps 3 - 7 (proxy - server)
-- `T3` - if happen in steps 8 - 9 (you - server)
+| # | Connection | Handshake | Ping |
+|---|---|---|---|
+| 1 | You TCP SYN → Proxy | | |
+| 2 | Proxy TCP SYN-ACK → You | | |
+| 3 | | You TCP ACK → Proxy | |
+| 4 | | Proxy TCP SYN → Server | |
+| 5 | | Server TCP SYN-ACK → Proxy | |
+| 6 | | Proxy TCP ACK → Server | |
+| 7 | | Server `SMSG_AUTH_CHALLENGE` → Proxy → You | |
+| 8 | | | You `CMSG_AUTH_SESSION` → Proxy → Server |
+| 9 | | | Server `SMSG_AUTH_RESPONSE` → Proxy → You |
+| | Timeouts `T1` | `T2` | `T3` |
 
 ## Antivirus reaction
 
 Some antivirus software can detect malware (false positive) in downloaded Windows release and block download. You can add an exception and try to download it again. This tool doesn't have any malware. You can check source code and compile it yourself with golang. Also you can scan it with VirusTotal.
+
+## Prometheus metrics
+
+This tool can work as a [Prometheus](https://prometheus.io) metrics exporter and display graphics in [Grafana](https://grafana.com/oss/grafana/):
+
+![grafana usage](./images/grafana.png)
+
+Pass the `-port` option:
+
+```shell
+wow-ping.exe -port 8090 logon.wowcircle.me
+```
+
+Metrics will be available at `http://127.0.0.1:8090/metrics`. Then you will need to setup Prometheus to grab this metrics.

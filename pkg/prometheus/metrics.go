@@ -11,60 +11,59 @@ import (
 
 const typeConnectTimeout = "connect"
 const typeHandshakeTimeout = "handshake"
-const typeTransferTimeout = "transfer"
+const typePingTimeout = "ping"
 
 type ResponseMetrics struct {
-	connTime    metric
-	handTime    metric
-	respTime    metric
-	respTimeout metric
-	respError   metric
+	connectTime   metric
+	handshakeTime metric
+	pingTime      metric
+	timeouts      metric
+	errors        metric
 }
 
 func NewResponseMetrics() *ResponseMetrics {
-	m := ResponseMetrics{
-		connTime: metric{
+	return &ResponseMetrics{
+		connectTime: metric{
 			name:       "wow_server_connect_time_ms",
 			help:       "WoW server connect time in ms",
 			typee:      "gauge",
 			labelNames: []string{"server", "group"},
 		},
-		handTime: metric{
+		handshakeTime: metric{
 			name:       "wow_server_handshake_time_ms",
 			help:       "WoW server handshake time in ms",
 			typee:      "gauge",
 			labelNames: []string{"server", "group"},
 		},
-		respTime: metric{
-			name:       "wow_server_response_time_ms",
-			help:       "WoW server response time in ms",
+		pingTime: metric{
+			name:       "wow_server_ping_time_ms",
+			help:       "WoW server ping time in ms",
 			typee:      "gauge",
 			labelNames: []string{"server", "group"},
 		},
-		respTimeout: metric{
+		timeouts: metric{
 			name:       "wow_server_timeout_count",
 			help:       "WoW server timeout count",
 			typee:      "counter",
 			labelNames: []string{"server", "group", "type"},
 		},
-		respError: metric{
+		errors: metric{
 			name:       "wow_server_error_count",
 			help:       "WoW server error count",
 			typee:      "counter",
 			labelNames: []string{"server", "group"},
 		},
 	}
-	return &m
 }
 
 func (m *ResponseMetrics) ListenAndServe(port int) error {
 	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		var resp strings.Builder
-		resp.WriteString(m.respError.string())
-		resp.WriteString(m.respTime.string())
-		resp.WriteString(m.connTime.string())
-		resp.WriteString(m.handTime.string())
-		resp.WriteString(m.respTimeout.string())
+		resp.WriteString(m.errors.string())
+		resp.WriteString(m.pingTime.string())
+		resp.WriteString(m.connectTime.string())
+		resp.WriteString(m.handshakeTime.string())
+		resp.WriteString(m.timeouts.string())
 		w.Write([]byte(resp.String()))
 	})
 
@@ -73,47 +72,47 @@ func (m *ResponseMetrics) ListenAndServe(port int) error {
 
 func (m *ResponseMetrics) Init(servers []*ping.Server) {
 	for _, server := range servers {
-		m.respTimeout.setValue([]string{server.Name, server.Group, typeConnectTimeout}, 0)
-		m.respError.setValue([]string{server.Name, server.Group}, 0)
+		m.timeouts.setValue([]string{server.Name, server.Group, typeConnectTimeout}, 0)
+		m.errors.setValue([]string{server.Name, server.Group}, 0)
 
 		if !server.ConnectOnly {
-			m.respTimeout.setValue([]string{server.Name, server.Group, typeHandshakeTimeout}, 0)
-			m.respTimeout.setValue([]string{server.Name, server.Group, typeTransferTimeout}, 0)
+			m.timeouts.setValue([]string{server.Name, server.Group, typeHandshakeTimeout}, 0)
+			m.timeouts.setValue([]string{server.Name, server.Group, typePingTimeout}, 0)
 		}
 	}
 }
 
 func (m *ResponseMetrics) Update(res *ping.PingResult) {
 	if res.ConnectDuration == 0 {
-		m.connTime.delete([]string{res.Name, res.Group})
+		m.connectTime.delete([]string{res.Name, res.Group})
 	} else {
 		conn := int(res.ConnectDuration.Milliseconds())
-		m.connTime.setValue([]string{res.Name, res.Group}, conn)
+		m.connectTime.setValue([]string{res.Name, res.Group}, conn)
 	}
 
 	if res.HandshakeDuration == 0 {
-		m.handTime.delete([]string{res.Name, res.Group})
+		m.handshakeTime.delete([]string{res.Name, res.Group})
 	} else {
 		hand := int(res.HandshakeDuration.Milliseconds())
-		m.handTime.setValue([]string{res.Name, res.Group}, hand)
+		m.handshakeTime.setValue([]string{res.Name, res.Group}, hand)
 	}
 
 	if res.PingDuration == 0 {
-		m.respTime.delete([]string{res.Name, res.Group})
+		m.pingTime.delete([]string{res.Name, res.Group})
 	} else {
 		ping := int(res.PingDuration.Milliseconds())
-		m.respTime.setValue([]string{res.Name, res.Group}, ping)
+		m.pingTime.setValue([]string{res.Name, res.Group}, ping)
 	}
 
 	if res.Error != nil {
 		if errors.Is(res.Error, ping.ErrConnectTimeout) {
-			m.respTimeout.addValue([]string{res.Name, res.Group, typeConnectTimeout}, 1)
+			m.timeouts.addValue([]string{res.Name, res.Group, typeConnectTimeout}, 1)
 		} else if errors.Is(res.Error, ping.ErrHandshakeTimeout) {
-			m.respTimeout.addValue([]string{res.Name, res.Group, typeHandshakeTimeout}, 1)
+			m.timeouts.addValue([]string{res.Name, res.Group, typeHandshakeTimeout}, 1)
 		} else if errors.Is(res.Error, ping.ErrTransferTimeout) {
-			m.respTimeout.addValue([]string{res.Name, res.Group, typeTransferTimeout}, 1)
+			m.timeouts.addValue([]string{res.Name, res.Group, typePingTimeout}, 1)
 		} else {
-			m.respError.addValue([]string{res.Name, res.Group}, 1)
+			m.errors.addValue([]string{res.Name, res.Group}, 1)
 		}
 	}
 }

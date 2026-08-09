@@ -3,7 +3,7 @@
   "kind": "Dashboard",
   "metadata": {
     "name": "adpls9v",
-    "generation": 2,
+    "generation": 3,
     "creationTimestamp": "2026-08-07T05:35:43Z",
     "labels": {},
     "annotations": {}
@@ -436,7 +436,7 @@
                       "spec": {
                         "editorMode": "builder",
                         "exemplar": false,
-                        "expr": "avg_over_time(wow_server_response_time_ms{group=~\"$group\", server=~\"$realms\"}[$interval])",
+                        "expr": "avg_over_time(wow_server_ping_time_ms{group=~\"$group\", server=~\"$realms\"}[$interval])",
                         "instant": false,
                         "legendFormat": "{{server}}",
                         "range": true
@@ -677,7 +677,7 @@
         "kind": "Panel",
         "spec": {
           "id": 6,
-          "title": "Transfer timeouts (T3)",
+          "title": "Ping timeouts (T3)",
           "description": "",
           "links": [],
           "data": {
@@ -693,7 +693,7 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "builder",
-                        "expr": "rate(wow_server_timeout_count{group=~\"$group\", type=\"transfer\", server=~\"$realms\"}[$interval])",
+                        "expr": "rate(wow_server_timeout_count{group=~\"$group\", type=\"ping\", server=~\"$realms\"}[$interval])",
                         "legendFormat": "{{server}}",
                         "range": true
                       },

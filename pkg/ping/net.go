@@ -15,7 +15,7 @@ var ErrResponseBodyBig = errors.New("response body too big")
 
 var ErrConnectTimeout = errors.New("connect timeout")
 var ErrHandshakeTimeout = errors.New("handshake timeout")
-var ErrTransferTimeout = errors.New("transfer timeout")
+var ErrPingTimeout = errors.New("ping timeout")
 
 type PingResult struct {
 	Name  string
@@ -128,7 +128,7 @@ func PingWowServer(
 	_, err = conn.Write(cmsgAuthSession)
 	if err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
-			res.Error = ErrTransferTimeout
+			res.Error = ErrPingTimeout
 			respChan <- res
 			return
 		}
@@ -143,7 +143,7 @@ func PingWowServer(
 
 	if err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
-			res.Error = ErrTransferTimeout
+			res.Error = ErrPingTimeout
 			respChan <- res
 			return
 		}
@@ -167,7 +167,7 @@ func PingWowServer(
 
 	respDuration := time.Since(writeTime)
 	if respDuration > timeout {
-		res.Error = ErrTransferTimeout
+		res.Error = ErrPingTimeout
 		respChan <- res
 		return
 	}

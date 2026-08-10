@@ -83,7 +83,7 @@ func (s *Store) Update(res *PingResult) {
 			stat.Timeouts1++
 		} else if errors.Is(res.Error, ErrHandshakeTimeout) {
 			stat.Timeouts2++
-		} else if errors.Is(res.Error, ErrTransferTimeout) {
+		} else if errors.Is(res.Error, ErrPingTimeout) {
 			stat.Timeouts3++
 		} else {
 			stat.Errors++

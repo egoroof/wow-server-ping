@@ -109,7 +109,7 @@ func (m *ResponseMetrics) Update(res *ping.PingResult) {
 			m.timeouts.addValue([]string{res.Name, res.Group, typeConnectTimeout}, 1)
 		} else if errors.Is(res.Error, ping.ErrHandshakeTimeout) {
 			m.timeouts.addValue([]string{res.Name, res.Group, typeHandshakeTimeout}, 1)
-		} else if errors.Is(res.Error, ping.ErrTransferTimeout) {
+		} else if errors.Is(res.Error, ping.ErrPingTimeout) {
 			m.timeouts.addValue([]string{res.Name, res.Group, typePingTimeout}, 1)
 		} else {
 			m.errors.addValue([]string{res.Name, res.Group}, 1)

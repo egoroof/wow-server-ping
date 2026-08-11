@@ -3,11 +3,14 @@ package ping
 import (
 	"errors"
 	"fmt"
+	"sync"
 )
 
 type ErrorLogger struct {
 	// key := server.Name + server.Group
 	lastErrorByServer map[string]error
+
+	mu sync.Mutex
 }
 
 func NewErrorLogger() *ErrorLogger {
@@ -17,7 +20,10 @@ func NewErrorLogger() *ErrorLogger {
 }
 
 // log only single error of same type for each server
-func (s *ErrorLogger) Log(res *PingResult) {
+func (s *ErrorLogger) Log(server *Server, res *PingResult) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if res.Error == nil ||
 		errors.Is(res.Error, ErrConnectTimeout) ||
 		errors.Is(res.Error, ErrHandshakeTimeout) ||
@@ -25,7 +31,7 @@ func (s *ErrorLogger) Log(res *PingResult) {
 		return
 	}
 
-	key := res.Name + res.Group
+	key := server.Name + server.Group
 	lastError := s.lastErrorByServer[key]
 
 	if lastError != nil && lastError.Error() == res.Error.Error() {
@@ -33,9 +39,12 @@ func (s *ErrorLogger) Log(res *PingResult) {
 	}
 
 	s.lastErrorByServer[key] = res.Error
-	fmt.Printf("%v %v\n", res.Name, res.Error)
+	fmt.Printf("%v %v\n", server.Name, res.Error)
 }
 
 func (s *ErrorLogger) Reset() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	clear(s.lastErrorByServer)
 }

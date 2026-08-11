@@ -15,7 +15,7 @@ import (
 )
 
 var LISTEN_PORT = flag.Int("port", 0, "listen port for Prometheus metrics")
-var PING_INTERVAL = flag.Duration("interval", time.Millisecond*500, "sleep time between requests")
+var PING_INTERVAL = flag.Duration("interval", time.Second, "how often send ping requests")
 var PING_TIMEOUT = flag.Duration("timeout", time.Second*3, "ping timeout")
 var STATS_INTERVAL = flag.Duration("stats-interval", time.Second*10, "how often stats should be printed to console")
 var STATS_COUNT = flag.Int("stats", 0, "how many stats to display before exit")
@@ -27,54 +27,50 @@ func recordMetrics(
 	logger *ping.ErrorLogger,
 	prom *prometheus.ResponseMetrics,
 ) {
-	resChan := make(chan *ping.PingResult)
-
 	stats.Init(servers)
 	if prom != nil {
 		prom.Init(servers)
 	}
 
+	for _, server := range servers {
+		go func() {
+			pingAndUpdate := func() {
+				res := ping.PingWowServer(server, *PING_TIMEOUT)
+
+				stats.Update(server, res)
+				if prom != nil {
+					prom.Update(server, res)
+				}
+
+				logger.Log(server, res)
+			}
+
+			pingAndUpdate()
+			for range time.Tick(*PING_INTERVAL) {
+				pingAndUpdate()
+			}
+		}()
+	}
+
 	statsLogTime := time.Now()
 	statsCount := 0
-	requestCount := 0
-	for {
-		requestCount++
-		for _, server := range servers {
-			go ping.PingWowServer(server, *PING_TIMEOUT, resChan)
+
+	for now := range time.Tick(*STATS_INTERVAL) {
+		fmt.Printf(
+			"\n%v to %v\n",
+			statsLogTime.Format(time.TimeOnly),
+			now.Format(time.TimeOnly),
+		)
+		stats.Print()
+		stats.Reset()
+		statsLogTime = now
+		statsCount++
+		logger.Reset()
+
+		if *STATS_COUNT == statsCount {
+			fmt.Println("Exiting due to stats count flag is set and reached")
+			os.Exit(0)
 		}
-
-		for range servers {
-			res := <-resChan
-
-			stats.Update(res)
-			if prom != nil {
-				prom.Update(res)
-			}
-
-			logger.Log(res)
-		}
-
-		if time.Now().After(statsLogTime.Add(*STATS_INTERVAL)) {
-			fmt.Printf(
-				"\n%v to %v sent %v requests\n",
-				statsLogTime.Format(time.TimeOnly),
-				time.Now().Format(time.TimeOnly),
-				requestCount,
-			)
-			stats.Print()
-			stats.Reset()
-			statsLogTime = time.Now()
-			statsCount++
-			requestCount = 0
-			logger.Reset()
-
-			if *STATS_COUNT == statsCount {
-				fmt.Println("Exiting due to stats count flag is set and reached")
-				os.Exit(0)
-			}
-		}
-
-		time.Sleep(*PING_INTERVAL)
 	}
 }
 

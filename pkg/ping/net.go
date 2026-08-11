@@ -18,9 +18,6 @@ var ErrHandshakeTimeout = errors.New("handshake timeout")
 var ErrPingTimeout = errors.New("ping timeout")
 
 type PingResult struct {
-	Name  string
-	Group string
-
 	ConnectDuration   time.Duration
 	HandshakeDuration time.Duration
 	PingDuration      time.Duration
@@ -50,37 +47,29 @@ var smsgAuthResponseUnknownAccount = []byte{
 func PingWowServer(
 	server *Server,
 	timeout time.Duration,
-	respChan chan<- *PingResult,
-) {
-	res := &PingResult{
-		Name:  server.Name,
-		Group: server.Group,
-	}
+) *PingResult {
+	res := &PingResult{}
 	startTime := time.Now()
 	conn, err := net.DialTimeout("tcp", server.Address, timeout)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, os.ErrDeadlineExceeded) {
 			res.Error = ErrConnectTimeout
-			respChan <- res
-			return
+			return res
 		}
 		res.Error = err
-		respChan <- res
-		return
+		return res
 	}
 	defer conn.Close()
 
 	connectDuration := time.Since(startTime)
 	if connectDuration > timeout {
 		res.Error = ErrConnectTimeout
-		respChan <- res
-		return
+		return res
 	}
 	res.ConnectDuration = connectDuration
 
 	if server.ConnectOnly {
-		respChan <- res
-		return
+		return res
 	}
 
 	buf := make([]byte, 64)
@@ -90,37 +79,31 @@ func PingWowServer(
 	if err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
 			res.Error = ErrHandshakeTimeout
-			respChan <- res
-			return
+			return res
 		}
 		res.Error = err
-		respChan <- res
-		return
+		return res
 	}
 
 	handshakeDuration := time.Since(readTime)
 	if handshakeDuration > timeout {
 		res.Error = ErrHandshakeTimeout
-		respChan <- res
-		return
+		return res
 	}
 	res.HandshakeDuration = handshakeDuration
 
 	if bytesRead >= len(buf) {
 		res.Error = ErrResponseBodyBig
-		respChan <- res
-		return
+		return res
 	}
 
 	if !bytes.Equal(smsgAuthChallenge, buf[0:8]) {
 		if bytes.Equal(smsgAuthResponseReject, buf[0:5]) {
 			res.Error = ErrIpTemporarelyBlocked
-			respChan <- res
-			return
+			return res
 		}
 		res.Error = ErrInvalidResponse
-		respChan <- res
-		return
+		return res
 	}
 
 	conn.SetDeadline(time.Now().Add(timeout))
@@ -129,12 +112,10 @@ func PingWowServer(
 	if err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
 			res.Error = ErrPingTimeout
-			respChan <- res
-			return
+			return res
 		}
 		res.Error = err
-		respChan <- res
-		return
+		return res
 	}
 
 	buf = make([]byte, 64)
@@ -144,36 +125,31 @@ func PingWowServer(
 	if err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
 			res.Error = ErrPingTimeout
-			respChan <- res
-			return
+			return res
 		}
 
 		res.Error = err
-		respChan <- res
-		return
+		return res
 	}
 
 	if bytesRead >= len(buf) {
 		res.Error = ErrResponseBodyBig
-		respChan <- res
-		return
+		return res
 	}
 
 	if !bytes.Equal(smsgAuthResponseUnknownAccount, buf[0:5]) {
 		res.Error = ErrInvalidResponse
-		respChan <- res
-		return
+		return res
 	}
 
 	respDuration := time.Since(writeTime)
 	if respDuration > timeout {
 		res.Error = ErrPingTimeout
-		respChan <- res
-		return
+		return res
 	}
 
 	res.PingDuration = respDuration
-	respChan <- res
+	return res
 }
 
 var cmsgAuthSession = []byte{

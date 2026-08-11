@@ -82,37 +82,37 @@ func (m *ResponseMetrics) Init(servers []*ping.Server) {
 	}
 }
 
-func (m *ResponseMetrics) Update(res *ping.PingResult) {
+func (m *ResponseMetrics) Update(server *ping.Server, res *ping.PingResult) {
 	if res.ConnectDuration == 0 {
-		m.connectTime.delete([]string{res.Name, res.Group})
+		m.connectTime.delete([]string{server.Name, server.Group})
 	} else {
 		conn := int(res.ConnectDuration.Milliseconds())
-		m.connectTime.setValue([]string{res.Name, res.Group}, conn)
+		m.connectTime.setValue([]string{server.Name, server.Group}, conn)
 	}
 
 	if res.HandshakeDuration == 0 {
-		m.handshakeTime.delete([]string{res.Name, res.Group})
+		m.handshakeTime.delete([]string{server.Name, server.Group})
 	} else {
 		hand := int(res.HandshakeDuration.Milliseconds())
-		m.handshakeTime.setValue([]string{res.Name, res.Group}, hand)
+		m.handshakeTime.setValue([]string{server.Name, server.Group}, hand)
 	}
 
 	if res.PingDuration == 0 {
-		m.pingTime.delete([]string{res.Name, res.Group})
+		m.pingTime.delete([]string{server.Name, server.Group})
 	} else {
 		ping := int(res.PingDuration.Milliseconds())
-		m.pingTime.setValue([]string{res.Name, res.Group}, ping)
+		m.pingTime.setValue([]string{server.Name, server.Group}, ping)
 	}
 
 	if res.Error != nil {
 		if errors.Is(res.Error, ping.ErrConnectTimeout) {
-			m.timeouts.addValue([]string{res.Name, res.Group, typeConnectTimeout}, 1)
+			m.timeouts.addValue([]string{server.Name, server.Group, typeConnectTimeout}, 1)
 		} else if errors.Is(res.Error, ping.ErrHandshakeTimeout) {
-			m.timeouts.addValue([]string{res.Name, res.Group, typeHandshakeTimeout}, 1)
+			m.timeouts.addValue([]string{server.Name, server.Group, typeHandshakeTimeout}, 1)
 		} else if errors.Is(res.Error, ping.ErrPingTimeout) {
-			m.timeouts.addValue([]string{res.Name, res.Group, typePingTimeout}, 1)
+			m.timeouts.addValue([]string{server.Name, server.Group, typePingTimeout}, 1)
 		} else {
-			m.errors.addValue([]string{res.Name, res.Group}, 1)
+			m.errors.addValue([]string{server.Name, server.Group}, 1)
 		}
 	}
 }

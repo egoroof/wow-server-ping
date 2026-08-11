@@ -7,12 +7,14 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"text/tabwriter"
 )
 
 type Statistics struct {
-	ServerName  string
-	ServerGroup string
+	ServerName   string
+	ServerGroup  string
+	RequestCount int
 
 	PingDurations      []int
 	ConnectDurations   []int
@@ -39,6 +41,8 @@ type Store struct {
 	groups []string
 
 	writer *tabwriter.Writer
+
+	mu sync.Mutex
 }
 
 func NewStatsStore(groupsOrder string) *Store {
@@ -59,9 +63,13 @@ func (s *Store) Init(servers []*Server) {
 	}
 }
 
-func (s *Store) Update(res *PingResult) {
-	key := res.Name + res.Group
+func (s *Store) Update(server *Server, res *PingResult) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	key := server.Name + server.Group
 	stat := s.stats[key]
+	stat.RequestCount++
 
 	if res.ConnectDuration != 0 {
 		conn := int(res.ConnectDuration.Milliseconds())
@@ -94,6 +102,9 @@ func (s *Store) Update(res *PingResult) {
 }
 
 func (s *Store) Reset() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	for key, elem := range s.stats {
 		s.stats[key] = &Statistics{
 			ServerName:  elem.ServerName,
@@ -103,6 +114,9 @@ func (s *Store) Reset() {
 }
 
 func (s *Store) Print() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	serverTableGroups := make(map[string][]*Statistics)
 	for _, stats := range s.stats {
 		stats.PingMean = Mean(stats.PingDurations)
@@ -144,7 +158,7 @@ func (s *Store) Print() {
 			// groups can be with zero realms due to filtering
 			continue
 		}
-		fmt.Fprintf(s.writer, "Realm\tConn\t±\tHand\t±\tPing\t±\tT1\tT2\tT3\tE\n")
+		fmt.Fprintf(s.writer, "Realm\tSent\tConn\t±\tHand\t±\tPing\t±\tT1\tT2\tT3\tE\n")
 		for _, stats := range serverTableGroups[group] {
 			t1 := ""
 			t2 := ""
@@ -194,8 +208,9 @@ func (s *Store) Print() {
 			}
 
 			fmt.Fprintf(
-				s.writer, "%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
+				s.writer, "%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
 				stats.ServerName,
+				stats.RequestCount,
 				connMean, connMad,
 				handshakeMean, handshakeMad,
 				pingMean, pingMad,

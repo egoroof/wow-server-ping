@@ -9,6 +9,7 @@ Ping tool for World of Warcraft 3.3.5a servers. Correctly measures ping to serve
 
 Definitions:
 
+- `Sent` - number of ping requests sent
 - `Conn` - mean connect time to WoW server in milliseconds
 - `Hand` - mean handshake time with WoW server in milliseconds
 - `Ping` - mean ping time to WoW server in milliseconds

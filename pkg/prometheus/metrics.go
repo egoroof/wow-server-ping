@@ -83,36 +83,40 @@ func (m *ResponseMetrics) Init(servers []*ping.Server) {
 }
 
 func (m *ResponseMetrics) Update(server *ping.Server, res *ping.PingResult) {
+	promKey := []string{server.Name, server.Group}
 	if res.ConnectDuration == 0 {
-		m.connectTime.delete([]string{server.Name, server.Group})
+		m.connectTime.delete(promKey)
 	} else {
 		conn := int(res.ConnectDuration.Milliseconds())
-		m.connectTime.setValue([]string{server.Name, server.Group}, conn)
+		m.connectTime.setValue(promKey, conn)
 	}
 
 	if res.HandshakeDuration == 0 {
-		m.handshakeTime.delete([]string{server.Name, server.Group})
+		m.handshakeTime.delete(promKey)
 	} else {
 		hand := int(res.HandshakeDuration.Milliseconds())
-		m.handshakeTime.setValue([]string{server.Name, server.Group}, hand)
+		m.handshakeTime.setValue(promKey, hand)
 	}
 
 	if res.PingDuration == 0 {
-		m.pingTime.delete([]string{server.Name, server.Group})
+		m.pingTime.delete(promKey)
 	} else {
 		ping := int(res.PingDuration.Milliseconds())
-		m.pingTime.setValue([]string{server.Name, server.Group}, ping)
+		m.pingTime.setValue(promKey, ping)
 	}
 
 	if res.Error != nil {
 		if errors.Is(res.Error, ping.ErrConnectTimeout) {
-			m.timeouts.addValue([]string{server.Name, server.Group, typeConnectTimeout}, 1)
+			key := append(promKey, typeConnectTimeout)
+			m.timeouts.addValue(key, 1)
 		} else if errors.Is(res.Error, ping.ErrHandshakeTimeout) {
-			m.timeouts.addValue([]string{server.Name, server.Group, typeHandshakeTimeout}, 1)
+			key := append(promKey, typeHandshakeTimeout)
+			m.timeouts.addValue(key, 1)
 		} else if errors.Is(res.Error, ping.ErrPingTimeout) {
-			m.timeouts.addValue([]string{server.Name, server.Group, typePingTimeout}, 1)
+			key := append(promKey, typePingTimeout)
+			m.timeouts.addValue(key, 1)
 		} else {
-			m.errors.addValue([]string{server.Name, server.Group}, 1)
+			m.errors.addValue(promKey, 1)
 		}
 	}
 }

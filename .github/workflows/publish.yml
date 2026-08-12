@@ -15,29 +15,39 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: "1.26"
-      - name: Prepare Linux release bundle
+      - name: Build binaries
         run: |
-          NAME="wow-ping-${{ github.ref_name }}.linux-amd64"
-          mkdir "$NAME"
-          cp -r servers "$NAME/"
-          cp *.md "$NAME/"
-          go build -ldflags="-s -w" -o "$NAME/" wow-ping.go
-          go build -ldflags="-s -w" -o "$NAME/" cmd/realmlist/realmlist.go
-          zip -qr "${NAME}.zip" "$NAME"
-      - name: Prepare Windows release bundle
-        run: |
-          NAME="wow-ping-${{ github.ref_name }}.windows-amd64"
-          mkdir "$NAME"
-          cp -r servers "$NAME/"
-          cp bat/*.bat "$NAME/"
-          cp *.md "$NAME/"
-          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o "$NAME/" wow-ping.go
-          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o "$NAME/" cmd/realmlist/realmlist.go
-          zip -qr "${NAME}.zip" "$NAME"
+          platforms=("linux/amd64" "windows/amd64")
+
+          for platform in "${platforms[@]}"; do
+            GOOS="${platform%/*}"
+            GOARCH="${platform#*/}"
+            NAME="wow-ping-${{ github.ref_name }}.${GOOS}-${GOARCH}"
+
+            mkdir "$NAME"
+            cp -r servers "$NAME/"
+            cp *.md "$NAME/"
+
+            if [ "$GOOS" = "windows" ]; then
+              cp bat/*.bat "$NAME/"
+            fi
+
+            echo "Building wow-ping for $GOOS/$GOARCH..."
+            CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build \
+              -ldflags="-s -w -X main.version=${{ github.ref_name }}" \
+              -o "$NAME/" \
+              wow-ping.go
+
+            echo "Building realmlist for $GOOS/$GOARCH..."
+            CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build \
+              -ldflags="-s -w -X main.version=${{ github.ref_name }}" \
+              -o "$NAME/" \
+              cmd/realmlist/realmlist.go
+
+            zip -qr "${NAME}.zip" "$NAME"
+          done
       - name: Release
         uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
-          files: |
-            wow-ping-${{ github.ref_name }}.windows-amd64.zip
-            wow-ping-${{ github.ref_name }}.linux-amd64.zip
+          files: wow-ping-*.zip

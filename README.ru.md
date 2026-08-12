@@ -25,7 +25,7 @@
 
 ### Скачивание
 
-Сборки для Windows и Linux можно скачать со [страницы релизов](https://github.com/egoroof/wow-server-ping/releases/latest). Если нужны сборки для других ОС - создайте багрепорт.
+Сборки можно скачать со [страницы релизов](https://github.com/egoroof/wow-server-ping/releases/latest).
 
 ### Список миров
 

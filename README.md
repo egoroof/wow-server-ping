@@ -25,7 +25,7 @@ See [Ping process](#ping-process) for explanation about connection, handshake an
 
 ### Downloads
 
-Builds are available for Windows and Linux on the [Release page](https://github.com/egoroof/wow-server-ping/releases/latest). Open an issue if you need another OS builds.
+Builds are available at the [Release page](https://github.com/egoroof/wow-server-ping/releases/latest).
 
 ### Realm list
 

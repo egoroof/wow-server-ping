@@ -34,13 +34,13 @@ jobs:
 
             echo "Building wow-ping for $GOOS/$GOARCH..."
             CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build \
-              -ldflags="-s -w -X main.version=${{ github.ref_name }}" \
+              -ldflags="-s -w" \
               -o "$NAME/" \
               wow-ping.go
 
             echo "Building realmlist for $GOOS/$GOARCH..."
             CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build \
-              -ldflags="-s -w -X main.version=${{ github.ref_name }}" \
+              -ldflags="-s -w" \
               -o "$NAME/" \
               cmd/realmlist/realmlist.go
 

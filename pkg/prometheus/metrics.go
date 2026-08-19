@@ -73,12 +73,9 @@ func (m *ResponseMetrics) ListenAndServe(port int) error {
 func (m *ResponseMetrics) Init(servers []*ping.Server) {
 	for _, server := range servers {
 		m.timeouts.setValue([]string{server.Name, server.Group, typeConnectTimeout}, 0)
+		m.timeouts.setValue([]string{server.Name, server.Group, typeHandshakeTimeout}, 0)
+		m.timeouts.setValue([]string{server.Name, server.Group, typePingTimeout}, 0)
 		m.errors.setValue([]string{server.Name, server.Group}, 0)
-
-		if !server.ConnectOnly {
-			m.timeouts.setValue([]string{server.Name, server.Group, typeHandshakeTimeout}, 0)
-			m.timeouts.setValue([]string{server.Name, server.Group, typePingTimeout}, 0)
-		}
 	}
 }
 

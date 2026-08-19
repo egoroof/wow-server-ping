@@ -1,9 +1,8 @@
 package ping
 
 type Server struct {
-	Name        string
-	Address     string
-	ConnectOnly bool
+	Name    string
+	Address string
 
 	Group string
 }

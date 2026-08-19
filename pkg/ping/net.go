@@ -68,10 +68,6 @@ func PingWowServer(
 	}
 	res.ConnectDuration = connectDuration
 
-	if server.ConnectOnly {
-		return res
-	}
-
 	buf := make([]byte, 64)
 	conn.SetDeadline(time.Now().Add(timeout))
 	readTime := time.Now()

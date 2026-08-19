@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"syscall"
 	"text/tabwriter"
 	"time"
@@ -15,8 +16,9 @@ import (
 	"golang.org/x/term"
 )
 
-var PORT = flag.Int("port", 3724, "realmlist server port")
 var TIMEOUT = flag.Duration("timeout", time.Second*10, "timeout for network operations")
+
+const defaultAuthPort = 3724
 
 func main() {
 	fmt.Println("World of Warcraft 3.3.5a realm list extractor.")
@@ -55,7 +57,10 @@ func main() {
 	}
 	fmt.Println("")
 
-	address := fmt.Sprintf("%v:%v", host, *PORT)
+	address := host
+	if !strings.Contains(address, ":") {
+		address += fmt.Sprintf(":%v", defaultAuthPort)
+	}
 	client := wow.NewWowClient(address, user, string(password), *TIMEOUT)
 
 	err = client.Login("")

@@ -70,7 +70,7 @@ func PingWowServer(
 
 	buf := make([]byte, 64)
 	conn.SetDeadline(time.Now().Add(timeout))
-	readTime := time.Now()
+	handshakeStartTime := time.Now()
 	bytesRead, err := conn.Read(buf)
 	if err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
@@ -81,7 +81,7 @@ func PingWowServer(
 		return res
 	}
 
-	handshakeDuration := time.Since(readTime)
+	handshakeDuration := time.Since(handshakeStartTime)
 	if handshakeDuration > timeout {
 		res.Error = ErrHandshakeTimeout
 		return res
@@ -103,7 +103,7 @@ func PingWowServer(
 	}
 
 	conn.SetDeadline(time.Now().Add(timeout))
-	writeTime := time.Now()
+	pingStartTime := time.Now()
 	_, err = conn.Write(cmsgAuthSession)
 	if err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
@@ -138,13 +138,13 @@ func PingWowServer(
 		return res
 	}
 
-	respDuration := time.Since(writeTime)
-	if respDuration > timeout {
+	pingDuration := time.Since(pingStartTime)
+	if pingDuration > timeout {
 		res.Error = ErrPingTimeout
 		return res
 	}
 
-	res.PingDuration = respDuration
+	res.PingDuration = pingDuration
 	return res
 }
 

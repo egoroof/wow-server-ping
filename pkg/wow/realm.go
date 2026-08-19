@@ -1,11 +1,11 @@
 package wow
 
-type realm struct {
+type Realm struct {
 	realmType  byte
 	locked     byte
 	flag       byte
-	Name       string `json:"name"`
-	Address    string `json:"address"`
+	Name       string
+	Address    string
 	population []byte
 	numChars   byte
 	category   byte

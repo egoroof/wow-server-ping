@@ -33,7 +33,7 @@ type wowClient struct {
 	clientSessionKey []byte
 	clientProof      []byte
 
-	realms []realm
+	realms []Realm
 }
 
 func NewWowClient(
@@ -113,7 +113,7 @@ func (w *wowClient) Login(authenticator string) error {
 	return nil
 }
 
-func (w *wowClient) GetRealmList() []realm {
+func (w *wowClient) GetRealmList() []Realm {
 	return w.realms
 }
 
@@ -292,7 +292,7 @@ func (w *wowClient) readRealmListServer() error {
 	numRealms := buf[cursor]
 	cursor += 2 // 255 realms should be enough? skip second byte
 
-	w.realms = make([]realm, 0, numRealms)
+	w.realms = make([]Realm, 0, numRealms)
 
 	for range numRealms {
 		realmType := buf[cursor]
@@ -334,7 +334,7 @@ func (w *wowClient) readRealmListServer() error {
 		realmId := buf[cursor]
 		cursor++
 
-		realm := realm{
+		realm := Realm{
 			realmType:  realmType,
 			locked:     locked,
 			flag:       flag,
@@ -349,7 +349,7 @@ func (w *wowClient) readRealmListServer() error {
 		w.realms = append(w.realms, realm)
 	}
 
-	slices.SortFunc(w.realms, func(a, b realm) int {
+	slices.SortFunc(w.realms, func(a, b Realm) int {
 		return strings.Compare(a.Name, b.Name)
 	})
 

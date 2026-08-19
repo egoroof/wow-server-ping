@@ -1,98 +1,108 @@
-[
-	{
-		"name": "WoW Circle 3.3.5a Fun",
-		"address": "212.41.28.11:12373"
-	},
-	{
-		"name": "WoW Circle 3.3.5a Fun [DE]",
-		"address": "194.247.187.187:12373"
-	},
-	{
-		"name": "WoW Circle 3.3.5a Fun [FIN]",
-		"address": "193.84.2.209:12373"
-	},
-	{
-		"name": "WoW Circle 3.3.5a Fun [MSK]",
-		"address": "45.138.163.171:12373"
-	},
-	{
-		"name": "WoW Circle 3.3.5a Fun [NL]",
-		"address": "31.207.45.133:12373"
-	},
-	{
-		"name": "WoW Circle 3.3.5a Fun [NSK]",
-		"address": "79.141.77.15:12373"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x1",
-		"address": "87.228.58.62:11294"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x1 [DE]",
-		"address": "194.247.187.187:11294"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x1 [FIN]",
-		"address": "193.84.2.209:11294"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x1 [MSK]",
-		"address": "45.138.163.171:11294"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x1 [NL]",
-		"address": "31.207.45.133:11294"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x1 [NSK]",
-		"address": "79.141.77.15:11294"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x100",
-		"address": "212.41.28.8:12742"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x100 [DE]",
-		"address": "194.247.187.187:12742"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x100 [FIN]",
-		"address": "193.84.2.209:12742"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x100 [MSK]",
-		"address": "45.138.163.171:12742"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x100 [NL]",
-		"address": "31.207.45.133:12742"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x100 [NSK]",
-		"address": "79.141.77.15:12742"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x4 Hardcore",
-		"address": "178.72.132.84:10525"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x4 [DE]",
-		"address": "194.247.187.136:10525"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x4 [FIN]",
-		"address": "193.84.2.201:10525"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x4 [MSK]",
-		"address": "5.35.8.118:10525"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x4 [NL]",
-		"address": "185.70.187.50:10525"
-	},
-	{
-		"name": "WoW Circle 3.3.5a x4 [NSK]",
-		"address": "79.141.74.29:10525"
-	}
-]
+{
+	"Host": "logon.wowcircle.me",
+	"Port": "3724",
+	"AddressList": [
+		"193.84.2.201:3724",
+		"193.84.2.191:3724",
+		"194.247.187.120:3724",
+		"193.84.2.192:3724"
+	],
+	"Realms": [
+		{
+			"Name": "WoW Circle 3.3.5a Fun",
+			"Address": "212.41.28.11:12373"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a Fun [DE]",
+			"Address": "194.247.187.187:12373"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a Fun [FIN]",
+			"Address": "193.84.2.209:12373"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a Fun [MSK]",
+			"Address": "45.138.163.171:12373"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a Fun [NL]",
+			"Address": "31.207.45.133:12373"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a Fun [NSK]",
+			"Address": "79.141.77.15:12373"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x1",
+			"Address": "87.228.58.62:11294"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x1 [DE]",
+			"Address": "194.247.187.187:11294"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x1 [FIN]",
+			"Address": "193.84.2.209:11294"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x1 [MSK]",
+			"Address": "45.138.163.171:11294"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x1 [NL]",
+			"Address": "31.207.45.133:11294"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x1 [NSK]",
+			"Address": "79.141.77.15:11294"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x100",
+			"Address": "212.41.28.8:12742"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x100 [DE]",
+			"Address": "194.247.187.187:12742"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x100 [FIN]",
+			"Address": "193.84.2.209:12742"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x100 [MSK]",
+			"Address": "45.138.163.171:12742"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x100 [NL]",
+			"Address": "31.207.45.133:12742"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x100 [NSK]",
+			"Address": "79.141.77.15:12742"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x4 Hardcore",
+			"Address": "178.72.132.84:10525"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x4 [DE]",
+			"Address": "194.247.187.136:10525"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x4 [FIN]",
+			"Address": "193.84.2.201:10525"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x4 [MSK]",
+			"Address": "5.35.8.118:10525"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x4 [NL]",
+			"Address": "185.70.187.50:10525"
+		},
+		{
+			"Name": "WoW Circle 3.3.5a x4 [NSK]",
+			"Address": "79.141.74.29:10525"
+		}
+	]
+}

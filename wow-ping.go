@@ -114,31 +114,35 @@ func main() {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	var allServers []*ping.Server
 	for _, configName := range configs {
-		serversPath := fmt.Sprintf("./servers/%v.json", configName)
-		fmt.Printf("\nRealm list %v\n", serversPath)
+		configPath := fmt.Sprintf("./servers/%v.json", configName)
+		fmt.Printf("\nConfig %v\n", configPath)
 
-		serversFile, err := os.ReadFile(serversPath)
+		configFile, err := os.ReadFile(configPath)
 		if err != nil {
 			fmt.Println("Error when opening file: ", err)
 			os.Exit(1)
 		}
 
-		var servers []ping.Server
-		err = json.Unmarshal(serversFile, &servers)
+		var config ping.ServerConfig
+		err = json.Unmarshal(configFile, &config)
 		if err != nil {
 			fmt.Println("Error during Unmarshal(): ", err)
 			os.Exit(1)
 		}
 
-		for _, server := range servers {
-			if *FILTER != "" && !filter.MatchString(server.Name) {
+		for _, realm := range config.Realms {
+			if *FILTER != "" && !filter.MatchString(realm.Name) {
 				continue
 			}
 
-			fmt.Fprintf(w, "%v\t%v\n", server.Name, server.Address)
+			fmt.Fprintf(w, "%v\t%v\n", realm.Name, realm.Address)
 
-			server.Group = configName
-			allServers = append(allServers, &server)
+			server := &ping.Server{
+				Name:    realm.Name,
+				Address: realm.Address,
+				Group:   configName,
+			}
+			allServers = append(allServers, server)
 		}
 		w.Flush()
 	}

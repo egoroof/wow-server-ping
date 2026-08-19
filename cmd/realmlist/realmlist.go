@@ -99,12 +99,8 @@ func main() {
 		fmt.Printf("Resolved: %v\n", strings.Join(ips, ", "))
 	}
 
-	var addressList []string
-	for _, ip := range ips {
-		addressList = append(addressList, fmt.Sprintf("%v:%v", ip, port))
-	}
-
-	address := addressList[rand.IntN(len(addressList))]
+	randomIp := ips[rand.IntN(len(ips))]
+	address := fmt.Sprintf("%v:%v", randomIp, port)
 	client := wow.NewWowClient(address, user, string(password), *TIMEOUT)
 
 	err = client.Login("")
@@ -145,10 +141,10 @@ func main() {
 	fmt.Println("")
 
 	serverConfig := ping.ServerConfig{
-		Host:        host,
-		Port:        port,
-		AddressList: addressList,
-		Realms:      realms,
+		Host:    host,
+		Port:    port,
+		HostIps: ips,
+		Realms:  realms,
 	}
 	filename := fmt.Sprintf("./servers/%v.json", config)
 	json, err := json.MarshalIndent(serverConfig, "", "	")

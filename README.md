@@ -39,16 +39,16 @@ If you worry about your credentials you can run Wireshark, login in your WoW cli
 
 ### Ping
 
-Simple example, which  loads realm list from `servers/logon.wowcircle.me.json` file, sends ping requests and print statistics every 10 seconds:
+Simple example, which  loads realm list from `servers/wowcircle.json` file, sends ping requests and print statistics every 10 seconds:
 
 ```shell
-wow-ping.exe logon.wowcircle.me
+wow-ping.exe wowcircle
 ```
 
 You can filter servers by regexp with `-filter` option:
 
 ```shell
-wow-ping.exe -filter "x4" logon.wowcircle.me
+wow-ping.exe -filter "x4" wowcircle
 ```
 
 Windows builds comes with some `.bat` files which you can use or make similar for you.
@@ -98,7 +98,7 @@ This tool can work as a [Prometheus](https://prometheus.io) metrics exporter and
 Pass the `-port` option:
 
 ```shell
-wow-ping.exe -port 8090 logon.wowcircle.me
+wow-ping.exe -port 8090 wowcircle
 ```
 
 Metrics will be available at `http://127.0.0.1:8090/metrics`. Then you will need to setup Prometheus to grab this metrics.

@@ -24,8 +24,20 @@ func main() {
 	fmt.Println("World of Warcraft 3.3.5a realm list extractor.")
 	flag.Parse()
 
-	host := flag.Arg(0)
-	user := flag.Arg(1)
+	config := flag.Arg(0)
+	host := flag.Arg(1)
+	user := flag.Arg(2)
+
+	if config == "" {
+		fmt.Print("Enter config name (where to save result): ")
+		_, err := fmt.Scanln(&config)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	} else {
+		fmt.Printf("Config: %v\n", config)
+	}
 
 	if host == "" {
 		fmt.Print("Enter host: ")
@@ -100,7 +112,7 @@ func main() {
 	w.Flush()
 	fmt.Println("")
 
-	filename := fmt.Sprintf("./servers/%v.json", host)
+	filename := fmt.Sprintf("./servers/%v.json", config)
 	json, err := json.MarshalIndent(realms, "", "	")
 	if err != nil {
 		fmt.Println(err)

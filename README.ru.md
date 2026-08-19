@@ -39,16 +39,16 @@
 
 ### Пинг
 
-Простой пример, который загружает список миров из файла `servers/logon.wowcircle.me.json`, отправляет пинг запросы и выводит статистику каждые 10 секунд:
+Простой пример, который загружает список миров из файла `servers/wowcircle.json`, отправляет пинг запросы и выводит статистику каждые 10 секунд:
 
 ```shell
-wow-ping.exe logon.wowcircle.me
+wow-ping.exe wowcircle
 ```
 
 Можно отфильтровать список серверов с помощью регулярного выражения опцией `-filter`:
 
 ```shell
-wow-ping.exe -filter "x4" logon.wowcircle.me
+wow-ping.exe -filter "x4" wowcircle
 ```
 
 Сборки для Windows содержат `.bat` файлы, которые вы можете использовать, либо сделать подобные для себя.
@@ -98,7 +98,7 @@ wow-ping.exe -filter "x4" logon.wowcircle.me
 Выставите опцию `-port`:
 
 ```shell
-wow-ping.exe -port 8090 logon.wowcircle.me
+wow-ping.exe -port 8090 wowcircle
 ```
 
 Метрики будут доступны по адресу `http://127.0.0.1:8090/metrics`. Дальше вам нужно будет настроить Prometheus, чтобы он собирал эти метрики.

@@ -44,6 +44,12 @@ var smsgAuthResponseUnknownAccount = []byte{
 	21, // result AUTH_UNKNOWN_ACCOUNT
 }
 
+var authLogonChallengeServerUnknownAccount = []byte{
+	0, // opcode AUTH_LOGON_CHALLENGE
+	0, // protocol_version
+	4, // result FAIL_UNKNOWN_ACCOUNT
+}
+
 func PingWowServer(
 	server *Server,
 	timeout time.Duration,
@@ -67,6 +73,51 @@ func PingWowServer(
 		return res
 	}
 	res.ConnectDuration = connectDuration
+
+	if server.IsAuth {
+		conn.SetDeadline(time.Now().Add(timeout))
+		handshakeStartTime := time.Now()
+		_, err := conn.Write(authLogonChallengeClient)
+		if err != nil {
+			if errors.Is(err, os.ErrDeadlineExceeded) {
+				res.Error = ErrHandshakeTimeout
+				return res
+			}
+			res.Error = err
+			return res
+		}
+
+		buf := make([]byte, 64)
+		conn.SetDeadline(time.Now().Add(timeout))
+		bytesRead, err := conn.Read(buf)
+		if err != nil {
+			if errors.Is(err, os.ErrDeadlineExceeded) {
+				res.Error = ErrHandshakeTimeout
+				return res
+			}
+			res.Error = err
+			return res
+		}
+
+		handshakeDuration := time.Since(handshakeStartTime)
+		if handshakeDuration > timeout {
+			res.Error = ErrHandshakeTimeout
+			return res
+		}
+		res.HandshakeDuration = handshakeDuration
+
+		if bytesRead >= len(buf) {
+			res.Error = ErrResponseBodyBig
+			return res
+		}
+
+		if !bytes.Equal(authLogonChallengeServerUnknownAccount, buf[0:3]) {
+			res.Error = ErrInvalidResponse
+			return res
+		}
+
+		return res
+	}
 
 	buf := make([]byte, 64)
 	conn.SetDeadline(time.Now().Add(timeout))
@@ -146,6 +197,21 @@ func PingWowServer(
 
 	res.PingDuration = pingDuration
 	return res
+}
+
+var authLogonChallengeClient = []byte{
+	0x0,     // Opcode CMD_AUTH_LOGON_CHALLENGE
+	0x8,     // Protocol version
+	30, 0x0, // LE Size
+	0x57, 0x6f, 0x57, 0x0, // BE Game name: WoW\0
+	0x3, 0x3, 0x5, // Version: 335
+	0x34, 0x30, // LE Build: 12340
+	0x36, 0x38, 0x78, 0x0, // LE Platform: \0x86
+	0x6e, 0x69, 0x57, 0x0, // LE OS: \0Win
+	0x55, 0x52, 0x75, 0x72, // LE Locale: ruRU
+	0xe0, 0x1, 0x0, 0x0, // LE worldregion_bias: 480
+	0x7f, 0x0, 0x0, 0x1, // BE Client IP: 127.0.0.1
+	0, // Username byte size
 }
 
 var cmsgAuthSession = []byte{

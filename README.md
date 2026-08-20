@@ -57,12 +57,13 @@ Windows builds comes with some `.bat` files which you can use or make similar fo
 
 | Flag | Default | Description |
 |---|---|---|
-| `-port` | - | Listen port for Prometheus metrics |
 | `-timeout` | `3s` | Ping timeout |
 | `-interval` | `1s` | How often send ping requests |
 | `-stats-interval` | `10s` | How often stats should be printed to console |
-| `-stats` | - | How many stats to display before exit |
+| `-ping-auth` | `false` | Whether to ping auth servers |
 | `-filter` | - | Regexp for filter servers by name |
+| `-stats` | - | How many stats to display before exit |
+| `-port` | - | Listen port for Prometheus metrics |
 
 ## Ping process
 

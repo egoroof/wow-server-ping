@@ -4,6 +4,7 @@ import (
 	"encoding/json/v2"
 	"flag"
 	"fmt"
+	"net/netip"
 	"os"
 	"regexp"
 	"strings"
@@ -12,14 +13,18 @@ import (
 
 	"github.com/egoroof/wow-server-ping/pkg/ping"
 	"github.com/egoroof/wow-server-ping/pkg/prometheus"
+	"github.com/egoroof/wow-server-ping/pkg/resolver"
 )
 
+var PING_AUTH = flag.Bool("ping-auth", false, "whether to ping auth serverss")
 var LISTEN_PORT = flag.Int("port", 0, "listen port for Prometheus metrics")
 var PING_INTERVAL = flag.Duration("interval", time.Second, "how often send ping requests")
 var PING_TIMEOUT = flag.Duration("timeout", time.Second*3, "ping timeout")
 var STATS_INTERVAL = flag.Duration("stats-interval", time.Second*10, "how often stats should be printed to console")
 var STATS_COUNT = flag.Int("stats", 0, "how many stats to display before exit")
 var FILTER = flag.String("filter", "", "regexp for filter servers by name")
+
+const hostLookupTimeout = time.Second * 10
 
 func recordMetrics(
 	servers []*ping.Server,
@@ -130,6 +135,37 @@ func main() {
 			os.Exit(1)
 		}
 
+		if *PING_AUTH {
+			var authIps []string
+			if _, err := netip.ParseAddr(config.Host); err == nil {
+				// host is IP
+				authIps = []string{config.Host}
+			} else {
+				fmt.Printf("Resolving %v\n", config.Host)
+				authIps, err = resolver.LookupHost(config.Host, hostLookupTimeout)
+
+				if err != nil {
+					authIps = config.HostIps
+					fmt.Println(err)
+					fmt.Println("Unable to resolve host, fall back to config HostIps")
+				}
+			}
+
+			for i, ip := range authIps {
+				name := fmt.Sprintf("Auth %v", i+1)
+				address := fmt.Sprintf("%v:%v", ip, config.Port)
+
+				fmt.Fprintf(w, "%v\t%v\n", name, address)
+
+				allServers = append(allServers, &ping.Server{
+					Name:    name,
+					Address: address,
+					Group:   configName,
+					IsAuth:  true,
+				})
+			}
+		}
+
 		for _, realm := range config.Realms {
 			if *FILTER != "" && !filter.MatchString(realm.Name) {
 				continue
@@ -137,12 +173,11 @@ func main() {
 
 			fmt.Fprintf(w, "%v\t%v\n", realm.Name, realm.Address)
 
-			server := &ping.Server{
+			allServers = append(allServers, &ping.Server{
 				Name:    realm.Name,
 				Address: realm.Address,
 				Group:   configName,
-			}
-			allServers = append(allServers, server)
+			})
 		}
 		w.Flush()
 	}

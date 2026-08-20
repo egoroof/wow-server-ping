@@ -13,6 +13,7 @@ type ServerConfig struct {
 type Server struct {
 	Name    string
 	Address string
+	IsAuth  bool
 
 	Group string
 }

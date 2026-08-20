@@ -70,9 +70,23 @@ func handleAuthConnection(conn net.Conn) {
 
 	// AuthLogonChallengeClient
 	buf := make([]byte, 256)
-	_, err := conn.Read(buf)
+	bytesRead, err := conn.Read(buf)
 	if err != nil {
 		fmt.Println(err)
+		return
+	}
+
+	if bytesRead == 34 {
+		// empty username - auth ping
+
+		// handshake delay
+		time.Sleep(time.Millisecond * 5)
+
+		cmd := []byte{0, 0, 4}
+		_, err = conn.Write(cmd)
+		if err != nil {
+			fmt.Println(err)
+		}
 		return
 	}
 

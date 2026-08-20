@@ -2,7 +2,8 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"errors"
 	"flag"
 	"fmt"
@@ -147,7 +148,7 @@ func main() {
 		Realms:  realms,
 	}
 	filename := fmt.Sprintf("./servers/%v.json", config)
-	json, err := json.MarshalIndent(serverConfig, "", "	")
+	json, err := json.Marshal(serverConfig, jsontext.Multiline(true))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

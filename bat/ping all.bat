@@ -1,0 +1,1 @@
+wow-ping.exe wowcircle

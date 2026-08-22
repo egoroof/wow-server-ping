@@ -87,7 +87,7 @@ func PingWowServer(
 			return res
 		}
 
-		buf := make([]byte, 64)
+		buf := make([]byte, 256)
 		conn.SetDeadline(time.Now().Add(timeout))
 		bytesRead, err := conn.Read(buf)
 		if err != nil {

@@ -1,0 +1,25 @@
+{
+	"Host": "logon.warmane.com",
+	"Port": "3724",
+	"HostIps": [
+		"145.239.161.30"
+	],
+	"Realms": [
+		{
+			"Name": "Blackrock [PvP only]",
+			"Address": "145.239.161.30:8095"
+		},
+		{
+			"Name": "Icecrown",
+			"Address": "145.239.161.30:8093"
+		},
+		{
+			"Name": "Lordaeron",
+			"Address": "145.239.161.30:8091"
+		},
+		{
+			"Name": "Onyxia",
+			"Address": "145.239.161.30:8096"
+		}
+	]
+}

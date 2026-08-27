@@ -11,7 +11,6 @@ import (
 
 var ErrInvalidResponse = errors.New("invalid response")
 var ErrIpTemporarelyBlocked = errors.New("your ip is temporarely blocked")
-var ErrResponseBodyBig = errors.New("response body too big")
 
 var ErrConnectTimeout = errors.New("connect timeout")
 var ErrHandshakeTimeout = errors.New("handshake timeout")
@@ -57,57 +56,50 @@ func PingWowServer(
 	res := &PingResult{}
 	startTime := time.Now()
 	conn, err := net.DialTimeout("tcp", server.Address, timeout)
-	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, os.ErrDeadlineExceeded) {
-			res.Error = ErrConnectTimeout
-			return res
-		}
-		res.Error = err
-		return res
-	}
-	defer conn.Close()
-
 	connectDuration := time.Since(startTime)
-	if connectDuration > timeout {
+
+	if errors.Is(err, context.DeadlineExceeded) ||
+		errors.Is(err, os.ErrDeadlineExceeded) ||
+		connectDuration > timeout {
 		res.Error = ErrConnectTimeout
 		return res
 	}
 	res.ConnectDuration = connectDuration
 
+	if err != nil {
+		res.Error = err
+		return res
+	}
+	defer conn.Close()
+
 	if server.IsAuth {
 		conn.SetDeadline(time.Now().Add(timeout))
 		handshakeStartTime := time.Now()
 		_, err := conn.Write(authLogonChallengeClient)
+
+		if errors.Is(err, os.ErrDeadlineExceeded) {
+			res.Error = ErrHandshakeTimeout
+			return res
+		}
+
 		if err != nil {
-			if errors.Is(err, os.ErrDeadlineExceeded) {
-				res.Error = ErrHandshakeTimeout
-				return res
-			}
 			res.Error = err
 			return res
 		}
 
 		buf := make([]byte, 256)
 		conn.SetDeadline(time.Now().Add(timeout))
-		bytesRead, err := conn.Read(buf)
-		if err != nil {
-			if errors.Is(err, os.ErrDeadlineExceeded) {
-				res.Error = ErrHandshakeTimeout
-				return res
-			}
-			res.Error = err
-			return res
-		}
-
+		_, err = conn.Read(buf)
 		handshakeDuration := time.Since(handshakeStartTime)
-		if handshakeDuration > timeout {
+
+		if errors.Is(err, os.ErrDeadlineExceeded) || handshakeDuration > timeout {
 			res.Error = ErrHandshakeTimeout
 			return res
 		}
 		res.HandshakeDuration = handshakeDuration
 
-		if bytesRead >= len(buf) {
-			res.Error = ErrResponseBodyBig
+		if err != nil {
+			res.Error = err
 			return res
 		}
 
@@ -122,25 +114,17 @@ func PingWowServer(
 	buf := make([]byte, 64)
 	conn.SetDeadline(time.Now().Add(timeout))
 	handshakeStartTime := time.Now()
-	bytesRead, err := conn.Read(buf)
-	if err != nil {
-		if errors.Is(err, os.ErrDeadlineExceeded) {
-			res.Error = ErrHandshakeTimeout
-			return res
-		}
-		res.Error = err
-		return res
-	}
-
+	_, err = conn.Read(buf)
 	handshakeDuration := time.Since(handshakeStartTime)
-	if handshakeDuration > timeout {
+
+	if errors.Is(err, os.ErrDeadlineExceeded) || handshakeDuration > timeout {
 		res.Error = ErrHandshakeTimeout
 		return res
 	}
 	res.HandshakeDuration = handshakeDuration
 
-	if bytesRead >= len(buf) {
-		res.Error = ErrResponseBodyBig
+	if err != nil {
+		res.Error = err
 		return res
 	}
 
@@ -156,42 +140,34 @@ func PingWowServer(
 	conn.SetDeadline(time.Now().Add(timeout))
 	pingStartTime := time.Now()
 	_, err = conn.Write(cmsgAuthSession)
+
+	if errors.Is(err, os.ErrDeadlineExceeded) {
+		res.Error = ErrPingTimeout
+		return res
+	}
+
 	if err != nil {
-		if errors.Is(err, os.ErrDeadlineExceeded) {
-			res.Error = ErrPingTimeout
-			return res
-		}
 		res.Error = err
 		return res
 	}
 
 	buf = make([]byte, 64)
 	conn.SetDeadline(time.Now().Add(timeout))
-	bytesRead, err = conn.Read(buf)
+	_, err = conn.Read(buf)
+	pingDuration := time.Since(pingStartTime)
 
-	if err != nil {
-		if errors.Is(err, os.ErrDeadlineExceeded) {
-			res.Error = ErrPingTimeout
-			return res
-		}
-
-		res.Error = err
+	if errors.Is(err, os.ErrDeadlineExceeded) || pingDuration > timeout {
+		res.Error = ErrPingTimeout
 		return res
 	}
 
-	if bytesRead >= len(buf) {
-		res.Error = ErrResponseBodyBig
+	if err != nil {
+		res.Error = err
 		return res
 	}
 
 	if !bytes.Equal(smsgAuthResponseUnknownAccount, buf[0:5]) {
 		res.Error = ErrInvalidResponse
-		return res
-	}
-
-	pingDuration := time.Since(pingStartTime)
-	if pingDuration > timeout {
-		res.Error = ErrPingTimeout
 		return res
 	}
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"net"
 	"os"
 	"time"
@@ -35,18 +36,6 @@ var smsgAuthResponseReject = []byte{
 	0, 3, // size
 	238, 1, // opcode 0x1EE SMSG_AUTH_RESPONSE
 	14, // result AUTH_REJECT
-}
-
-var smsgAuthResponseUnknownAccount = []byte{
-	0, 3, // BE size
-	238, 1, // LE opcode 0x1EE SMSG_AUTH_RESPONSE
-	21, // result AUTH_UNKNOWN_ACCOUNT
-}
-
-var authLogonChallengeServerUnknownAccount = []byte{
-	0, // opcode AUTH_LOGON_CHALLENGE
-	0, // protocol_version
-	4, // result FAIL_UNKNOWN_ACCOUNT
 }
 
 func PingWowServer(
@@ -98,16 +87,20 @@ func PingWowServer(
 		}
 		res.HandshakeDuration = handshakeDuration
 
+		if errors.Is(err, io.EOF) {
+			// some servers close connection to mitigate DDoS
+			return res
+		}
+
 		if err != nil {
 			res.Error = err
 			return res
 		}
 
-		if !bytes.Equal(authLogonChallengeServerUnknownAccount, buf[0:3]) {
-			res.Error = ErrInvalidResponse
-			return res
-		}
-
+		// some servers can return "unknown account"
+		// OR return OK response (to prevent scanning accounts)
+		// OR return DB_BUZY
+		// so we don't check the response body
 		return res
 	}
 
@@ -160,18 +153,20 @@ func PingWowServer(
 		res.Error = ErrPingTimeout
 		return res
 	}
+	res.PingDuration = pingDuration
+
+	if errors.Is(err, io.EOF) {
+		// some servers close connection instead of return "unknow account"
+		return res
+	}
 
 	if err != nil {
 		res.Error = err
 		return res
 	}
 
-	if !bytes.Equal(smsgAuthResponseUnknownAccount, buf[0:5]) {
-		res.Error = ErrInvalidResponse
-		return res
-	}
-
-	res.PingDuration = pingDuration
+	// servers usually return "unknown account"
+	// but we don't validate response body
 	return res
 }
 

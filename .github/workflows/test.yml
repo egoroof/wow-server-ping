@@ -13,3 +13,4 @@ jobs:
       - run: go build wow-ping.go
       - run: go build cmd/realmlist/realmlist.go
       - run: ./wow-ping -stats=1 -stats-interval=3.1s -ping-auth wowcircle
+      - run: ./wow-ping -stats=1 -stats-interval=3.1s -ping-auth warmane

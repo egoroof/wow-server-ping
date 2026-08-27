@@ -39,7 +39,7 @@ func (s *ErrorLogger) Log(server *Server, res *PingResult) {
 	}
 
 	s.lastErrorByServer[key] = res.Error
-	fmt.Printf("%v %v\n", server.Name, res.Error)
+	fmt.Printf("%v/%v %v\n", server.Group, server.Name, res.Error)
 }
 
 func (s *ErrorLogger) Reset() {

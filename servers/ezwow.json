@@ -1,0 +1,21 @@
+{
+	"Host": "ezlogin.org",
+	"Port": "3724",
+	"HostIps": [
+		"91.202.44.200"
+	],
+	"Realms": [
+		{
+			"Name": "Isengard Tirion FUN",
+			"Address": "91.202.44.200:8085"
+		},
+		{
+			"Name": "Isengard Tirion x2",
+			"Address": "91.202.44.200:8085"
+		},
+		{
+			"Name": "Тест",
+			"Address": "91.202.44.204:8088"
+		}
+	]
+}

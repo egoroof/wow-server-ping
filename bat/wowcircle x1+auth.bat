@@ -1,3 +1,3 @@
 @echo off
-cd ../../
+cd ../
 wow-ping.exe -filter "x1$|x1 " -ping-auth wowcircle

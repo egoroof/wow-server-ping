@@ -1,3 +1,3 @@
 @echo off
-cd ../../
+cd ../
 wow-ping.exe -filter "Fun" wowcircle

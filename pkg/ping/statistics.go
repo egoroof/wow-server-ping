@@ -146,6 +146,12 @@ func (s *Store) Print() {
 			if a.PingMAD-b.PingMAD != 0 {
 				return a.PingMAD - b.PingMAD
 			}
+			if a.HandshakeMean-b.HandshakeMean != 0 {
+				return a.HandshakeMean - b.HandshakeMean
+			}
+			if a.HandshakeMAD-b.HandshakeMAD != 0 {
+				return a.HandshakeMAD - b.HandshakeMAD
+			}
 			if a.ConnectMean-b.ConnectMean != 0 {
 				return a.ConnectMean - b.ConnectMean
 			}

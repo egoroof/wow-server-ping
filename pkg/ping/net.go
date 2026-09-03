@@ -53,13 +53,15 @@ func PingWowServer(
 		res.Error = ErrConnectTimeout
 		return res
 	}
-	res.ConnectDuration = connectDuration
 
 	if err != nil {
 		res.Error = err
 		return res
 	}
 	defer conn.Close()
+
+	// connect duration is only valid after dial err check
+	res.ConnectDuration = connectDuration
 
 	if server.IsAuth {
 		conn.SetDeadline(time.Now().Add(timeout))
@@ -85,10 +87,11 @@ func PingWowServer(
 			res.Error = ErrHandshakeTimeout
 			return res
 		}
-		res.HandshakeDuration = handshakeDuration
 
 		if errors.Is(err, io.EOF) {
 			// some servers close connection to mitigate DDoS
+			// this case handshake duration can be valid
+			res.HandshakeDuration = handshakeDuration
 			return res
 		}
 
@@ -96,6 +99,9 @@ func PingWowServer(
 			res.Error = err
 			return res
 		}
+
+		// handshake duration is valid after read err check
+		res.HandshakeDuration = handshakeDuration
 
 		// some servers can return "unknown account"
 		// OR return OK response (to prevent scanning accounts)
@@ -114,12 +120,14 @@ func PingWowServer(
 		res.Error = ErrHandshakeTimeout
 		return res
 	}
-	res.HandshakeDuration = handshakeDuration
 
 	if err != nil {
 		res.Error = err
 		return res
 	}
+
+	// handshake duration is only valid after read err check
+	res.HandshakeDuration = handshakeDuration
 
 	if !bytes.Equal(smsgAuthChallenge, buf[0:8]) {
 		if bytes.Equal(smsgAuthResponseReject, buf[0:5]) {
@@ -153,10 +161,11 @@ func PingWowServer(
 		res.Error = ErrPingTimeout
 		return res
 	}
-	res.PingDuration = pingDuration
 
 	if errors.Is(err, io.EOF) {
 		// some servers close connection instead of return "unknow account"
+		// this case ping duration can be valid
+		res.PingDuration = pingDuration
 		return res
 	}
 
@@ -164,6 +173,9 @@ func PingWowServer(
 		res.Error = err
 		return res
 	}
+
+	// ping duration is valid after read err check
+	res.PingDuration = pingDuration
 
 	// servers usually return "unknown account"
 	// but we don't validate response body

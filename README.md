@@ -29,11 +29,17 @@ Builds are available at the [Release page](https://github.com/egoroof/wow-server
 
 ### Realm list
 
-If you are interested in the `WoW Circle 3.3.5a` server you don't need to extract realm list - it's already included in the build. You can skip this step.
+Some popular server realm lists already included in the build:
+
+- WoW Circle
+- Warmane
+- EZ WoW
+
+If you are interested in these servers you don't need to extract realm list. You can skip this step.
 
 You will need to extract realm list first. Wow servers can give you realm list only after login, so you will have to enter your username and password. This project has an utility, which logins to WoW server similar real WoW game client and save realm list to `servers` folder.
 
-Start `realmlist.bat` on Windows or `realmlist` on Linux. It will ask server host, your username and password.
+Start `realmlist.bat` on Windows (from `bat` folder) or `realmlist` on Linux. It will ask server host, your username and password.
 
 If you worry about your credentials you can run Wireshark, login in your WoW client and extract realmlist yourself.
 

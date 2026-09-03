@@ -76,8 +76,8 @@ func handleAuthConnection(conn net.Conn) {
 		return
 	}
 
-	if bytesRead == 34 {
-		// empty username - auth ping
+	if bytesRead == 35 {
+		// username "U" - auth ping
 
 		// handshake delay
 		time.Sleep(time.Millisecond * 5)

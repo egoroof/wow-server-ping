@@ -185,7 +185,7 @@ func PingWowServer(
 var authLogonChallengeClient = []byte{
 	0x0,     // Opcode CMD_AUTH_LOGON_CHALLENGE
 	0x8,     // Protocol version
-	30, 0x0, // LE Size
+	31, 0x0, // LE Size
 	0x57, 0x6f, 0x57, 0x0, // BE Game name: WoW\0
 	0x3, 0x3, 0x5, // Version: 335
 	0x34, 0x30, // LE Build: 12340
@@ -194,7 +194,8 @@ var authLogonChallengeClient = []byte{
 	0x55, 0x52, 0x75, 0x72, // LE Locale: ruRU
 	0xe0, 0x1, 0x0, 0x0, // LE worldregion_bias: 480
 	0x7f, 0x0, 0x0, 0x1, // BE Client IP: 127.0.0.1
-	0, // Username byte size
+	1,    // Username byte size
+	0x55, // Username "U"
 }
 
 var cmsgAuthSession = []byte{

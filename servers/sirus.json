@@ -1,0 +1,45 @@
+{
+	"Host": "37.230.118.5",
+	"Port": "3724",
+	"HostIps": [
+		"37.230.118.5"
+	],
+	"Realms": [
+		{
+			"Name": "Neverest x3 - 3.3.5a+",
+			"Address": "212.22.66.110:7778"
+		},
+		{
+			"Name": "Sirus x5 - 3.3.5a+",
+			"Address": "212.22.66.110:7777"
+		},
+		{
+			"Name": "Soulseeker x1 - 3.3.5a+",
+			"Address": "212.22.66.110:7775"
+		},
+		{
+			"Name": "Proxy Neverest x3 - 3.3.5a+",
+			"Address": "178.104.38.23:7778"
+		},
+		{
+			"Name": "Proxy Sirus x5 - 3.3.5a+",
+			"Address": "5.252.33.29:7777"
+		},
+		{
+			"Name": "Proxy Soulseeker x1 - 3.3.5a+",
+			"Address": "5.252.33.29:7775"
+		},
+		{
+			"Name": "ProxyEU Neverest x3 - 3.3.5a+",
+			"Address": "178.104.38.23:7778"
+		},
+		{
+			"Name": "ProxyEU Sirus x5 - 3.3.5a+",
+			"Address": "178.104.38.23:7777"
+		},
+		{
+			"Name": "ProxyEU Soulseeker x1 - 3.3.5a+",
+			"Address": "178.104.38.23:7775"
+		}
+	]
+}

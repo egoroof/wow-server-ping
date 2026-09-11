@@ -2,7 +2,8 @@ package ping
 
 import (
 	"errors"
-	"fmt"
+	"log"
+	"os"
 	"sync"
 )
 
@@ -10,12 +11,21 @@ type ErrorLogger struct {
 	// key := server.Name + server.Group
 	lastErrorByServer map[string]error
 
+	logger *log.Logger
+
 	mu sync.Mutex
 }
 
-func NewErrorLogger() *ErrorLogger {
+func NewErrorLogger(filename string) *ErrorLogger {
+	// todo file close at gracefull shutdown?
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		panic(err)
+	}
+
 	return &ErrorLogger{
 		lastErrorByServer: make(map[string]error),
+		logger:            log.New(file, "", log.LstdFlags),
 	}
 }
 
@@ -39,7 +49,7 @@ func (s *ErrorLogger) Log(server *Server, res *PingResult) {
 	}
 
 	s.lastErrorByServer[key] = res.Error
-	fmt.Printf("%v/%v %v\n", server.Group, server.Name, res.Error)
+	s.logger.Printf("%v/%v %v\n", server.Group, server.Name, res.Error)
 }
 
 func (s *ErrorLogger) Reset() {

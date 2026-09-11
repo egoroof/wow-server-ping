@@ -25,6 +25,7 @@ var STATS_COUNT = flag.Int("stats", 0, "how many stats to display before exit")
 var FILTER = flag.String("filter", "", "regexp for filter servers by name")
 
 const hostLookupTimeout = time.Second * 10
+const errorsFilename = "errors.txt"
 
 func recordMetrics(
 	servers []*ping.Server,
@@ -188,7 +189,7 @@ func main() {
 	}
 
 	stats := ping.NewStatsStore(configsWithComma)
-	logger := ping.NewErrorLogger()
+	logger := ping.NewErrorLogger(errorsFilename)
 	if *LISTEN_PORT == 0 {
 		recordMetrics(allServers, stats, logger, nil)
 	} else {

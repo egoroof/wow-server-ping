@@ -117,7 +117,7 @@ func main() {
 		filter = regexp.MustCompile(*FILTER)
 	}
 
-	if err := os.MkdirAll(errorsDir, 0644); err != nil {
+	if err := os.MkdirAll(errorsDir, 0666); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

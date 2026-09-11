@@ -2,6 +2,7 @@ package ping
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -18,9 +19,10 @@ type ErrorLogger struct {
 
 func NewErrorLogger(filename string) *ErrorLogger {
 	// todo file close at gracefull shutdown?
-	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
 	return &ErrorLogger{

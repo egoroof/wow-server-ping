@@ -25,7 +25,7 @@ var STATS_COUNT = flag.Int("stats", 0, "how many stats to display before exit")
 var FILTER = flag.String("filter", "", "regexp for filter servers by name")
 
 const hostLookupTimeout = time.Second * 10
-const errorsFilename = "errors.txt"
+const errorsDir = "errors"
 
 func recordMetrics(
 	servers []*ping.Server,
@@ -116,6 +116,14 @@ func main() {
 		fmt.Printf("Realm name filter: \"%v\"\n", *FILTER)
 		filter = regexp.MustCompile(*FILTER)
 	}
+
+	if err := os.MkdirAll(errorsDir, 0644); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	safeTime := time.Now().Format("2006-01-02_15-04-05")
+	errorsFilename := fmt.Sprintf("%v/%v.txt", errorsDir, safeTime)
+	fmt.Printf("Errors file: %v\n", errorsFilename)
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	var allServers []*ping.Server

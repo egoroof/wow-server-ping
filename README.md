@@ -37,6 +37,10 @@ Some popular server realm lists already included in the build:
 
 If you are interested in these servers you don't need to extract realm list. You can skip this step.
 
+This tool doesn't work with the Sirus server.
+
+---
+
 You will need to extract realm list first. Wow servers can give you realm list only after login, so you will have to enter your username and password. This project has an utility, which logins to WoW server similar real WoW game client and save realm list to `servers` folder.
 
 Start `realmlist.bat` on Windows (from `bat` folder) or `realmlist` on Linux. It will ask server host, your username and password.

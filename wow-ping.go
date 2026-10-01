@@ -7,7 +7,6 @@ import (
 	"net/netip"
 	"os"
 	"regexp"
-	"strings"
 	"text/tabwriter"
 	"time"
 
@@ -84,18 +83,16 @@ func main() {
 	fmt.Println("Ping tool for World of Warcraft 3.3.5a servers.")
 	flag.Parse()
 
-	configsWithComma := flag.Arg(0)
+	configName := flag.Arg(0)
 
-	if configsWithComma == "" {
-		fmt.Print("Enter config names: ")
-		_, err := fmt.Scanln(&configsWithComma)
+	if configName == "" {
+		fmt.Print("Enter config name: ")
+		_, err := fmt.Scanln(&configName)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 	}
-
-	configs := strings.Split(configsWithComma, ",")
 
 	fmt.Printf("Ping timeout: %v\n", *PING_TIMEOUT)
 	fmt.Printf("Ping interval: %v\n", *PING_INTERVAL)
@@ -125,78 +122,74 @@ func main() {
 	errorsFilename := fmt.Sprintf("%v/%v.txt", errorsDir, safeTime)
 	fmt.Printf("Errors file: %v\n", errorsFilename)
 
+	configPath := fmt.Sprintf("./servers/%v.json", configName)
+	fmt.Printf("\nConfig %v\n", configPath)
+
+	configFile, err := os.ReadFile(configPath)
+	if err != nil {
+		fmt.Println("Error when opening file: ", err)
+		os.Exit(1)
+	}
+
+	var config ping.ServerConfig
+	err = json.Unmarshal(configFile, &config)
+	if err != nil {
+		fmt.Println("Error during Unmarshal(): ", err)
+		os.Exit(1)
+	}
+
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	var allServers []*ping.Server
-	for _, configName := range configs {
-		configPath := fmt.Sprintf("./servers/%v.json", configName)
-		fmt.Printf("\nConfig %v\n", configPath)
+	if *PING_AUTH {
+		var authIps []string
+		if _, err := netip.ParseAddr(config.Host); err == nil {
+			// host is IP
+			authIps = []string{config.Host}
+		} else {
+			fmt.Printf("Resolving %v\n", config.Host)
+			authIps, err = resolver.LookupHost(config.Host, hostLookupTimeout)
 
-		configFile, err := os.ReadFile(configPath)
-		if err != nil {
-			fmt.Println("Error when opening file: ", err)
-			os.Exit(1)
-		}
-
-		var config ping.ServerConfig
-		err = json.Unmarshal(configFile, &config)
-		if err != nil {
-			fmt.Println("Error during Unmarshal(): ", err)
-			os.Exit(1)
-		}
-
-		if *PING_AUTH {
-			var authIps []string
-			if _, err := netip.ParseAddr(config.Host); err == nil {
-				// host is IP
-				authIps = []string{config.Host}
-			} else {
-				fmt.Printf("Resolving %v\n", config.Host)
-				authIps, err = resolver.LookupHost(config.Host, hostLookupTimeout)
-
-				if err != nil {
-					authIps = config.HostIps
-					fmt.Println(err)
-					fmt.Println("Unable to resolve host, fall back to config HostIps")
-				}
-			}
-
-			for i, ip := range authIps {
-				name := fmt.Sprintf("Auth %v", i+1)
-				address := fmt.Sprintf("%v:%v", ip, config.Port)
-
-				fmt.Fprintf(w, "%v\t%v\n", name, address)
-
-				allServers = append(allServers, &ping.Server{
-					Name:    name,
-					Address: address,
-					Group:   configName,
-					IsAuth:  true,
-				})
+			if err != nil {
+				authIps = config.HostIps
+				fmt.Println(err)
+				fmt.Println("Unable to resolve host, fall back to config HostIps")
 			}
 		}
 
-		for _, realm := range config.Realms {
-			if *FILTER != "" && !filter.MatchString(realm.Name) {
-				continue
-			}
+		for i, ip := range authIps {
+			name := fmt.Sprintf("Auth %v", i+1)
+			address := fmt.Sprintf("%v:%v", ip, config.Port)
 
-			fmt.Fprintf(w, "%v\t%v\n", realm.Name, realm.Address)
+			fmt.Fprintf(w, "%v\t%v\n", name, address)
 
 			allServers = append(allServers, &ping.Server{
-				Name:    realm.Name,
-				Address: realm.Address,
-				Group:   configName,
+				Name:    name,
+				Address: address,
+				IsAuth:  true,
 			})
 		}
-		w.Flush()
 	}
+
+	for _, realm := range config.Realms {
+		if *FILTER != "" && !filter.MatchString(realm.Name) {
+			continue
+		}
+
+		fmt.Fprintf(w, "%v\t%v\n", realm.Name, realm.Address)
+
+		allServers = append(allServers, &ping.Server{
+			Name:    realm.Name,
+			Address: realm.Address,
+		})
+	}
+	w.Flush()
 
 	if len(allServers) == 0 {
 		fmt.Println("No realms found")
 		os.Exit(1)
 	}
 
-	stats := ping.NewStatsStore(configsWithComma)
+	stats := ping.NewStatsStore()
 	logger := ping.NewErrorLogger(errorsFilename)
 	if *LISTEN_PORT == 0 {
 		recordMetrics(allServers, stats, logger, nil)

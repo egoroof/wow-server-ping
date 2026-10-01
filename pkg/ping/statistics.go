@@ -6,14 +6,12 @@ import (
 	"os"
 	"slices"
 	"strconv"
-	"strings"
 	"sync"
 	"text/tabwriter"
 )
 
 type Statistics struct {
 	ServerName   string
-	ServerGroup  string
 	RequestCount int
 
 	PingDurations      []int
@@ -35,30 +33,25 @@ type Statistics struct {
 }
 
 type Store struct {
-	// key := server.Name + server.Group
+	// key := server.Name
 	stats map[string]*Statistics
-
-	groups []string
 
 	writer *tabwriter.Writer
 
 	mu sync.Mutex
 }
 
-func NewStatsStore(groupsOrder string) *Store {
+func NewStatsStore() *Store {
 	return &Store{
 		stats:  make(map[string]*Statistics),
-		groups: strings.Split(groupsOrder, ","),
 		writer: tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0),
 	}
 }
 
 func (s *Store) Init(servers []*Server) {
 	for _, server := range servers {
-		key := server.Name + server.Group
-		s.stats[key] = &Statistics{
-			ServerName:  server.Name,
-			ServerGroup: server.Group,
+		s.stats[server.Name] = &Statistics{
+			ServerName: server.Name,
 		}
 	}
 }
@@ -67,8 +60,7 @@ func (s *Store) Update(server *Server, res *PingResult) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := server.Name + server.Group
-	stat := s.stats[key]
+	stat := s.stats[server.Name]
 	stat.RequestCount++
 
 	if res.ConnectDuration != 0 {
@@ -98,7 +90,7 @@ func (s *Store) Update(server *Server, res *PingResult) {
 		}
 	}
 
-	s.stats[key] = stat
+	s.stats[server.Name] = stat
 }
 
 func (s *Store) Reset() {
@@ -107,8 +99,7 @@ func (s *Store) Reset() {
 
 	for key, elem := range s.stats {
 		s.stats[key] = &Statistics{
-			ServerName:  elem.ServerName,
-			ServerGroup: elem.ServerGroup,
+			ServerName: elem.ServerName,
 		}
 	}
 }
@@ -117,7 +108,7 @@ func (s *Store) Print() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	serverTableGroups := make(map[string][]*Statistics)
+	var serverTable []*Statistics
 	for _, stats := range s.stats {
 		stats.PingMean = Mean(stats.PingDurations)
 		stats.PingMAD = MAD(stats.PingDurations)
@@ -128,104 +119,95 @@ func (s *Store) Print() {
 		stats.HandshakeMean = Mean(stats.HandshakeDurations)
 		stats.HandshakeMAD = MAD(stats.HandshakeDurations)
 
-		serverTableGroups[stats.ServerGroup] = append(serverTableGroups[stats.ServerGroup], stats)
-	}
-	for group := range serverTableGroups {
-		slices.SortFunc(serverTableGroups[group], func(a, b *Statistics) int {
-			if a.Errors-b.Errors != 0 {
-				return a.Errors - b.Errors
-			}
-			aTimeouts := a.Timeouts1 + a.Timeouts2 + a.Timeouts3
-			bTimeouts := b.Timeouts1 + b.Timeouts2 + b.Timeouts3
-			if aTimeouts-bTimeouts != 0 {
-				return aTimeouts - bTimeouts
-			}
-			if a.PingMean-b.PingMean != 0 {
-				return a.PingMean - b.PingMean
-			}
-			if a.PingMAD-b.PingMAD != 0 {
-				return a.PingMAD - b.PingMAD
-			}
-			if a.HandshakeMean-b.HandshakeMean != 0 {
-				return a.HandshakeMean - b.HandshakeMean
-			}
-			if a.HandshakeMAD-b.HandshakeMAD != 0 {
-				return a.HandshakeMAD - b.HandshakeMAD
-			}
-			if a.ConnectMean-b.ConnectMean != 0 {
-				return a.ConnectMean - b.ConnectMean
-			}
-			return a.ConnectMAD - b.ConnectMAD
-		})
+		serverTable = append(serverTable, stats)
 	}
 
-	for _, group := range s.groups {
-		if _, exist := serverTableGroups[group]; !exist {
-			// groups can be with zero realms due to filtering
-			continue
+	slices.SortFunc(serverTable, func(a, b *Statistics) int {
+		if a.Errors-b.Errors != 0 {
+			return a.Errors - b.Errors
 		}
-		fmt.Fprintf(s.writer, "Realm\tSent\tConn\t±\tHand\t±\tPing\t±\tT1\tT2\tT3\tE\n")
-		for _, stats := range serverTableGroups[group] {
-			t1 := ""
-			t2 := ""
-			t3 := ""
-			e := ""
-			if stats.Timeouts1 > 0 {
-				t1 = strconv.Itoa(stats.Timeouts1)
-			}
-			if stats.Timeouts2 > 0 {
-				t2 = strconv.Itoa(stats.Timeouts2)
-			}
-			if stats.Timeouts3 > 0 {
-				t3 = strconv.Itoa(stats.Timeouts3)
-			}
-			if stats.Errors > 0 {
-				e = strconv.Itoa(stats.Errors)
-			}
-
-			connMean := strconv.Itoa(stats.ConnectMean)
-			connMad := strconv.Itoa(stats.ConnectMAD)
-
-			if len(stats.ConnectDurations) == 0 {
-				connMean = "-"
-				connMad = ""
-			} else if stats.ConnectMean == 0 {
-				connMean = "<1"
-			}
-
-			handshakeMean := strconv.Itoa(stats.HandshakeMean)
-			handshakeMad := strconv.Itoa(stats.HandshakeMAD)
-
-			if len(stats.HandshakeDurations) == 0 {
-				handshakeMean = "-"
-				handshakeMad = ""
-			} else if stats.HandshakeMean == 0 {
-				handshakeMean = "<1"
-			}
-
-			pingMean := strconv.Itoa(stats.PingMean)
-			pingMad := strconv.Itoa(stats.PingMAD)
-
-			if len(stats.PingDurations) == 0 {
-				pingMean = "-"
-				pingMad = ""
-			} else if stats.PingMean == 0 {
-				pingMean = "<1"
-			}
-
-			fmt.Fprintf(
-				s.writer, "%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
-				stats.ServerName,
-				stats.RequestCount,
-				connMean, connMad,
-				handshakeMean, handshakeMad,
-				pingMean, pingMad,
-				t1, t2, t3, e,
-			)
+		aTimeouts := a.Timeouts1 + a.Timeouts2 + a.Timeouts3
+		bTimeouts := b.Timeouts1 + b.Timeouts2 + b.Timeouts3
+		if aTimeouts-bTimeouts != 0 {
+			return aTimeouts - bTimeouts
 		}
-		if len(serverTableGroups) > 1 {
-			fmt.Fprintf(s.writer, "\n")
+		if a.PingMean-b.PingMean != 0 {
+			return a.PingMean - b.PingMean
 		}
+		if a.PingMAD-b.PingMAD != 0 {
+			return a.PingMAD - b.PingMAD
+		}
+		if a.HandshakeMean-b.HandshakeMean != 0 {
+			return a.HandshakeMean - b.HandshakeMean
+		}
+		if a.HandshakeMAD-b.HandshakeMAD != 0 {
+			return a.HandshakeMAD - b.HandshakeMAD
+		}
+		if a.ConnectMean-b.ConnectMean != 0 {
+			return a.ConnectMean - b.ConnectMean
+		}
+		return a.ConnectMAD - b.ConnectMAD
+	})
+
+	fmt.Fprintf(s.writer, "Realm\tSent\tConn\t±\tHand\t±\tPing\t±\tT1\tT2\tT3\tE\n")
+	for _, stats := range serverTable {
+		t1 := ""
+		t2 := ""
+		t3 := ""
+		e := ""
+		if stats.Timeouts1 > 0 {
+			t1 = strconv.Itoa(stats.Timeouts1)
+		}
+		if stats.Timeouts2 > 0 {
+			t2 = strconv.Itoa(stats.Timeouts2)
+		}
+		if stats.Timeouts3 > 0 {
+			t3 = strconv.Itoa(stats.Timeouts3)
+		}
+		if stats.Errors > 0 {
+			e = strconv.Itoa(stats.Errors)
+		}
+
+		connMean := strconv.Itoa(stats.ConnectMean)
+		connMad := strconv.Itoa(stats.ConnectMAD)
+
+		if len(stats.ConnectDurations) == 0 {
+			connMean = "-"
+			connMad = ""
+		} else if stats.ConnectMean == 0 {
+			connMean = "<1"
+		}
+
+		handshakeMean := strconv.Itoa(stats.HandshakeMean)
+		handshakeMad := strconv.Itoa(stats.HandshakeMAD)
+
+		if len(stats.HandshakeDurations) == 0 {
+			handshakeMean = "-"
+			handshakeMad = ""
+		} else if stats.HandshakeMean == 0 {
+			handshakeMean = "<1"
+		}
+
+		pingMean := strconv.Itoa(stats.PingMean)
+		pingMad := strconv.Itoa(stats.PingMAD)
+
+		if len(stats.PingDurations) == 0 {
+			pingMean = "-"
+			pingMad = ""
+		} else if stats.PingMean == 0 {
+			pingMean = "<1"
+		}
+
+		fmt.Fprintf(
+			s.writer, "%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
+			stats.ServerName,
+			stats.RequestCount,
+			connMean, connMad,
+			handshakeMean, handshakeMad,
+			pingMean, pingMad,
+			t1, t2, t3, e,
+		)
 	}
+
 	s.writer.Flush()
 }

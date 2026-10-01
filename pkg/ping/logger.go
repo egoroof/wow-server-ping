@@ -43,15 +43,14 @@ func (s *ErrorLogger) Log(server *Server, res *PingResult) {
 		return
 	}
 
-	key := server.Name + server.Group
-	lastError := s.lastErrorByServer[key]
+	lastError := s.lastErrorByServer[server.Name]
 
 	if lastError != nil && lastError.Error() == res.Error.Error() {
 		return
 	}
 
-	s.lastErrorByServer[key] = res.Error
-	s.logger.Printf("%v/%v %v\n", server.Group, server.Name, res.Error)
+	s.lastErrorByServer[server.Name] = res.Error
+	s.logger.Printf("%v %v\n", server.Name, res.Error)
 }
 
 func (s *ErrorLogger) Reset() {

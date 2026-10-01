@@ -14,6 +14,4 @@ type Server struct {
 	Name    string
 	Address string
 	IsAuth  bool
-
-	Group string
 }

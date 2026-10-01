@@ -27,31 +27,31 @@ func NewResponseMetrics() *ResponseMetrics {
 			name:       "wow_server_connect_time_ms",
 			help:       "WoW server connect time in ms",
 			typee:      "gauge",
-			labelNames: []string{"server", "group"},
+			labelNames: []string{"server"},
 		},
 		handshakeTime: metric{
 			name:       "wow_server_handshake_time_ms",
 			help:       "WoW server handshake time in ms",
 			typee:      "gauge",
-			labelNames: []string{"server", "group"},
+			labelNames: []string{"server"},
 		},
 		pingTime: metric{
 			name:       "wow_server_ping_time_ms",
 			help:       "WoW server ping time in ms",
 			typee:      "gauge",
-			labelNames: []string{"server", "group"},
+			labelNames: []string{"server"},
 		},
 		timeouts: metric{
 			name:       "wow_server_timeout_count",
 			help:       "WoW server timeout count",
 			typee:      "counter",
-			labelNames: []string{"server", "group", "type"},
+			labelNames: []string{"server", "type"},
 		},
 		errors: metric{
 			name:       "wow_server_error_count",
 			help:       "WoW server error count",
 			typee:      "counter",
-			labelNames: []string{"server", "group"},
+			labelNames: []string{"server"},
 		},
 	}
 }
@@ -72,15 +72,15 @@ func (m *ResponseMetrics) ListenAndServe(port int) error {
 
 func (m *ResponseMetrics) Init(servers []*ping.Server) {
 	for _, server := range servers {
-		m.timeouts.setValue([]string{server.Name, server.Group, typeConnectTimeout}, 0)
-		m.timeouts.setValue([]string{server.Name, server.Group, typeHandshakeTimeout}, 0)
-		m.timeouts.setValue([]string{server.Name, server.Group, typePingTimeout}, 0)
-		m.errors.setValue([]string{server.Name, server.Group}, 0)
+		m.timeouts.setValue([]string{server.Name, typeConnectTimeout}, 0)
+		m.timeouts.setValue([]string{server.Name, typeHandshakeTimeout}, 0)
+		m.timeouts.setValue([]string{server.Name, typePingTimeout}, 0)
+		m.errors.setValue([]string{server.Name}, 0)
 	}
 }
 
 func (m *ResponseMetrics) Update(server *ping.Server, res *ping.PingResult) {
-	promKey := []string{server.Name, server.Group}
+	promKey := []string{server.Name}
 	if res.ConnectDuration == 0 {
 		m.connectTime.delete(promKey)
 	} else {

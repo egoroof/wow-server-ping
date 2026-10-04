@@ -112,4 +112,4 @@ wow-ping.exe -filter "x4" wowcircle
 wow-ping.exe -port 8090 wowcircle
 ```
 
-Метрики будут доступны по адресу `http://127.0.0.1:8090/metrics`. Дальше вам нужно будет настроить Prometheus, чтобы он собирал эти метрики.
+Метрики будут доступны по адресу `http://localhost:8090/metrics`. Дальше вам нужно будет настроить Prometheus, чтобы он собирал эти метрики.

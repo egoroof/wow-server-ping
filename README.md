@@ -112,4 +112,4 @@ Pass the `-port` option:
 wow-ping.exe -port 8090 wowcircle
 ```
 
-Metrics will be available at `http://127.0.0.1:8090/metrics`. Then you will need to setup Prometheus to grab this metrics.
+Metrics will be available at `http://localhost:8090/metrics`. Then you will need to setup Prometheus to grab this metrics.

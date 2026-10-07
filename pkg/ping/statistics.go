@@ -6,12 +6,13 @@ import (
 	"os"
 	"slices"
 	"strconv"
+	"strings"
 	"sync"
 	"text/tabwriter"
 )
 
 type Statistics struct {
-	ServerName   string
+	Server       *Server
 	RequestCount int
 
 	PingDurations      []int
@@ -36,6 +37,9 @@ type Store struct {
 	// key := server.Name
 	stats map[string]*Statistics
 
+	shortNames []string
+	proxyNames []string
+
 	writer *tabwriter.Writer
 
 	mu sync.Mutex
@@ -44,14 +48,23 @@ type Store struct {
 func NewStatsStore() *Store {
 	return &Store{
 		stats:  make(map[string]*Statistics),
-		writer: tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0),
+		writer: tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0),
 	}
 }
 
 func (s *Store) Init(servers []*Server) {
 	for _, server := range servers {
 		s.stats[server.Name] = &Statistics{
-			ServerName: server.Name,
+			Server: server,
+		}
+
+		if !server.IsAuth {
+			if !slices.Contains(s.shortNames, server.ShortName) {
+				s.shortNames = append(s.shortNames, server.ShortName)
+			}
+			if !slices.Contains(s.proxyNames, server.ProxyName) {
+				s.proxyNames = append(s.proxyNames, server.ProxyName)
+			}
 		}
 	}
 }
@@ -99,7 +112,7 @@ func (s *Store) Reset() {
 
 	for key, elem := range s.stats {
 		s.stats[key] = &Statistics{
-			ServerName: elem.ServerName,
+			Server: elem.Server,
 		}
 	}
 }
@@ -108,7 +121,9 @@ func (s *Store) Print() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	var serverTable []*Statistics
+	// key1 proxyName, key2 shortName
+	realmStats := make(map[string]map[string]*Statistics)
+	var authStats []*Statistics
 	for _, stats := range s.stats {
 		stats.PingMean = Mean(stats.PingDurations)
 		stats.PingMAD = MAD(stats.PingDurations)
@@ -119,95 +134,126 @@ func (s *Store) Print() {
 		stats.HandshakeMean = Mean(stats.HandshakeDurations)
 		stats.HandshakeMAD = MAD(stats.HandshakeDurations)
 
-		serverTable = append(serverTable, stats)
+		if stats.Server.IsAuth {
+			authStats = append(authStats, stats)
+		} else {
+			if _, ok := realmStats[stats.Server.ProxyName]; !ok {
+				realmStats[stats.Server.ProxyName] = make(map[string]*Statistics)
+			}
+			realmStats[stats.Server.ProxyName][stats.Server.ShortName] = stats
+		}
 	}
 
-	slices.SortFunc(serverTable, func(a, b *Statistics) int {
-		if a.Errors-b.Errors != 0 {
-			return a.Errors - b.Errors
+	slices.SortFunc(s.proxyNames, func(a, b string) int {
+		proxyGroupA := realmStats[a]
+		proxyGroupB := realmStats[b]
+
+		pingSumA := 0
+		pingSumB := 0
+		for _, name := range s.shortNames {
+			if statsA, ok := proxyGroupA[name]; ok {
+				pingSumA += statsA.PingMean
+			}
+			if statsB, ok := proxyGroupB[name]; ok {
+				pingSumB += statsB.PingMean
+			}
 		}
-		aTimeouts := a.Timeouts1 + a.Timeouts2 + a.Timeouts3
-		bTimeouts := b.Timeouts1 + b.Timeouts2 + b.Timeouts3
-		if aTimeouts-bTimeouts != 0 {
-			return aTimeouts - bTimeouts
+		// every server from the group doesn't have ping (cause timeouts or errors)
+		// so move it down in the list
+		if pingSumA == 0 {
+			return 1
 		}
-		if a.PingMean-b.PingMean != 0 {
-			return a.PingMean - b.PingMean
+		if pingSumB == 0 {
+			return -1
 		}
-		if a.PingMAD-b.PingMAD != 0 {
-			return a.PingMAD - b.PingMAD
-		}
-		if a.HandshakeMean-b.HandshakeMean != 0 {
-			return a.HandshakeMean - b.HandshakeMean
-		}
-		if a.HandshakeMAD-b.HandshakeMAD != 0 {
-			return a.HandshakeMAD - b.HandshakeMAD
-		}
-		if a.ConnectMean-b.ConnectMean != 0 {
-			return a.ConnectMean - b.ConnectMean
-		}
-		return a.ConnectMAD - b.ConnectMAD
+
+		pingGroupA := pingSumA / len(proxyGroupA)
+		pingGroupB := pingSumB / len(proxyGroupB)
+
+		return pingGroupA - pingGroupB
 	})
 
-	fmt.Fprintf(s.writer, "Realm\tSent\tConn\t±\tHand\t±\tPing\t±\tT1\tT2\tT3\tE\n")
-	for _, stats := range serverTable {
-		t1 := ""
-		t2 := ""
-		t3 := ""
-		e := ""
-		if stats.Timeouts1 > 0 {
-			t1 = strconv.Itoa(stats.Timeouts1)
-		}
-		if stats.Timeouts2 > 0 {
-			t2 = strconv.Itoa(stats.Timeouts2)
-		}
-		if stats.Timeouts3 > 0 {
-			t3 = strconv.Itoa(stats.Timeouts3)
-		}
-		if stats.Errors > 0 {
-			e = strconv.Itoa(stats.Errors)
-		}
+	if len(authStats) > 0 {
+		slices.SortFunc(authStats, func(a, b *Statistics) int {
+			return strings.Compare(a.Server.ShortName, b.Server.ShortName)
+		})
 
-		connMean := strconv.Itoa(stats.ConnectMean)
-		connMad := strconv.Itoa(stats.ConnectMAD)
-
-		if len(stats.ConnectDurations) == 0 {
-			connMean = "-"
-			connMad = ""
-		} else if stats.ConnectMean == 0 {
-			connMean = "<1"
+		for _, stats := range authStats {
+			fmt.Fprintf(s.writer, "\t%v", stats.Server.ShortName)
 		}
-
-		handshakeMean := strconv.Itoa(stats.HandshakeMean)
-		handshakeMad := strconv.Itoa(stats.HandshakeMAD)
-
-		if len(stats.HandshakeDurations) == 0 {
-			handshakeMean = "-"
-			handshakeMad = ""
-		} else if stats.HandshakeMean == 0 {
-			handshakeMean = "<1"
+		fmt.Fprintf(s.writer, "\nMain")
+		for _, stats := range authStats {
+			fmt.Fprintf(s.writer, "\t%v", formatStats(stats, true))
 		}
+		fmt.Fprintf(s.writer, "\n\n")
+	}
 
-		pingMean := strconv.Itoa(stats.PingMean)
-		pingMad := strconv.Itoa(stats.PingMAD)
+	for _, name := range s.shortNames {
+		fmt.Fprintf(s.writer, "\t%v", name)
+	}
+	fmt.Fprintf(s.writer, "\n")
 
-		if len(stats.PingDurations) == 0 {
-			pingMean = "-"
-			pingMad = ""
-		} else if stats.PingMean == 0 {
-			pingMean = "<1"
+	for _, proxy := range s.proxyNames {
+		fmt.Fprintf(s.writer, "%v", proxy)
+		for _, name := range s.shortNames {
+			fmt.Fprintf(s.writer, "\t%v", formatStats(realmStats[proxy][name], false))
 		}
-
-		fmt.Fprintf(
-			s.writer, "%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
-			stats.ServerName,
-			stats.RequestCount,
-			connMean, connMad,
-			handshakeMean, handshakeMad,
-			pingMean, pingMad,
-			t1, t2, t3, e,
-		)
+		fmt.Fprintf(s.writer, "\n")
 	}
 
 	s.writer.Flush()
+}
+
+func formatStats(stats *Statistics, useHandshake bool) string {
+	if stats == nil {
+		return "-"
+	}
+
+	delayStr := ""
+	delayDurationsLen := len(stats.PingDurations)
+	delayMean := stats.PingMean
+
+	if useHandshake {
+		delayDurationsLen = len(stats.HandshakeDurations)
+		delayMean = stats.HandshakeMean
+	}
+
+	if delayDurationsLen == 0 {
+		delayStr = ""
+	} else if delayMean == 0 {
+		delayStr = "<1"
+	} else {
+		delayStr = strconv.Itoa(delayMean)
+	}
+
+	madStr := ""
+	mad := stats.PingMAD
+
+	if useHandshake {
+		mad = stats.HandshakeMAD
+	}
+
+	if mad > 100 {
+		madStr = "***"
+	} else if mad > 50 {
+		madStr = "**"
+	} else if mad > 10 {
+		madStr = "*"
+	}
+
+	errorsStr := ""
+	if stats.Timeouts1 > 0 {
+		errorsStr += "(T1)"
+	}
+	if stats.Timeouts2 > 0 {
+		errorsStr += "(T2)"
+	}
+	if stats.Timeouts3 > 0 {
+		errorsStr += "(T3)"
+	}
+	if stats.Errors > 0 {
+		errorsStr += "(E)"
+	}
+
+	return delayStr + madStr + errorsStr
 }

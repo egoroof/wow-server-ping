@@ -157,15 +157,18 @@ func main() {
 		}
 
 		for i, ip := range authIps {
-			name := fmt.Sprintf("Auth %v", i+1)
+			name := fmt.Sprintf("Auth%v", i+1)
 			address := fmt.Sprintf("%v:%v", ip, config.Port)
 
 			fmt.Fprintf(w, "%v\t%v\n", name, address)
 
 			allServers = append(allServers, &ping.Server{
-				Name:    name,
-				Address: address,
-				IsAuth:  true,
+				Name:       name,
+				Address:    address,
+				ShortName:  name,
+				ProxyName:  "Main",
+				ConfigName: configName,
+				IsAuth:     true,
 			})
 		}
 	}
@@ -175,11 +178,14 @@ func main() {
 			continue
 		}
 
-		fmt.Fprintf(w, "%v\t%v\n", realm.Name, realm.Address)
+		fmt.Fprintf(w, "%v\t%v\t%v\t%v\n", realm.Name, realm.Address, realm.ShortName, realm.ProxyName)
 
 		allServers = append(allServers, &ping.Server{
-			Name:    realm.Name,
-			Address: realm.Address,
+			Name:       realm.Name,
+			Address:    realm.Address,
+			ShortName:  realm.ShortName,
+			ProxyName:  realm.ProxyName,
+			ConfigName: configName,
 		})
 	}
 	w.Flush()

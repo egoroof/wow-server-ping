@@ -10,99 +10,147 @@
 	"Realms": [
 		{
 			"Name": "WoW Circle 3.3.5a Fun",
-			"Address": "212.41.28.11:12373"
+			"Address": "212.41.28.11:12373",
+			"ShortName": "Fun",
+			"ProxyName": "Main"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a Fun [DE]",
-			"Address": "194.247.187.187:12373"
+			"Address": "194.247.187.187:12373",
+			"ShortName": "Fun",
+			"ProxyName": "DE"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a Fun [FIN]",
-			"Address": "193.84.2.209:12373"
+			"Address": "193.84.2.209:12373",
+			"ShortName": "Fun",
+			"ProxyName": "FIN"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a Fun [MSK]",
-			"Address": "45.138.163.171:12373"
+			"Address": "45.138.163.171:12373",
+			"ShortName": "Fun",
+			"ProxyName": "MSK"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a Fun [NL]",
-			"Address": "31.207.45.133:12373"
+			"Address": "31.207.45.133:12373",
+			"ShortName": "Fun",
+			"ProxyName": "NL"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a Fun [NSK]",
-			"Address": "79.141.77.15:12373"
+			"Address": "79.141.77.15:12373",
+			"ShortName": "Fun",
+			"ProxyName": "NSK"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x1",
-			"Address": "87.228.58.62:11294"
+			"Address": "87.228.58.62:11294",
+			"ShortName": "x1",
+			"ProxyName": "Main"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x1 [DE]",
-			"Address": "194.247.187.187:11294"
+			"Address": "194.247.187.187:11294",
+			"ShortName": "x1",
+			"ProxyName": "DE"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x1 [FIN]",
-			"Address": "193.84.2.209:11294"
+			"Address": "193.84.2.209:11294",
+			"ShortName": "x1",
+			"ProxyName": "FIN"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x1 [MSK]",
-			"Address": "45.138.163.171:11294"
+			"Address": "45.138.163.171:11294",
+			"ShortName": "x1",
+			"ProxyName": "MSK"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x1 [NL]",
-			"Address": "31.207.45.133:11294"
+			"Address": "31.207.45.133:11294",
+			"ShortName": "x1",
+			"ProxyName": "NL"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x1 [NSK]",
-			"Address": "79.141.77.15:11294"
+			"Address": "79.141.77.15:11294",
+			"ShortName": "x1",
+			"ProxyName": "NSK"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x100",
-			"Address": "212.41.28.8:12742"
+			"Address": "212.41.28.8:12742",
+			"ShortName": "x100",
+			"ProxyName": "Main"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x100 [DE]",
-			"Address": "194.247.187.187:12742"
+			"Address": "194.247.187.187:12742",
+			"ShortName": "x100",
+			"ProxyName": "DE"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x100 [FIN]",
-			"Address": "193.84.2.209:12742"
+			"Address": "193.84.2.209:12742",
+			"ShortName": "x100",
+			"ProxyName": "FIN"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x100 [MSK]",
-			"Address": "45.138.163.171:12742"
+			"Address": "45.138.163.171:12742",
+			"ShortName": "x100",
+			"ProxyName": "MSK"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x100 [NL]",
-			"Address": "31.207.45.133:12742"
+			"Address": "31.207.45.133:12742",
+			"ShortName": "x100",
+			"ProxyName": "NL"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x100 [NSK]",
-			"Address": "79.141.77.15:12742"
+			"Address": "79.141.77.15:12742",
+			"ShortName": "x100",
+			"ProxyName": "NSK"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x4 Hardcore",
-			"Address": "178.72.132.84:10525"
+			"Address": "178.72.132.84:10525",
+			"ShortName": "x4",
+			"ProxyName": "Main"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x4 [DE]",
-			"Address": "194.247.187.136:10525"
+			"Address": "194.247.187.136:10525",
+			"ShortName": "x4",
+			"ProxyName": "DE"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x4 [FIN]",
-			"Address": "193.84.2.201:10525"
+			"Address": "193.84.2.201:10525",
+			"ShortName": "x4",
+			"ProxyName": "FIN"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x4 [MSK]",
-			"Address": "5.35.8.118:10525"
+			"Address": "5.35.8.118:10525",
+			"ShortName": "x4",
+			"ProxyName": "MSK"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x4 [NL]",
-			"Address": "185.70.187.50:10525"
+			"Address": "185.70.187.50:10525",
+			"ShortName": "x4",
+			"ProxyName": "NL"
 		},
 		{
 			"Name": "WoW Circle 3.3.5a x4 [NSK]",
-			"Address": "79.141.74.29:10525"
+			"Address": "79.141.74.29:10525",
+			"ShortName": "x4",
+			"ProxyName": "NSK"
 		}
 	]
 }

@@ -198,7 +198,11 @@ func (w *wowClient) readAuthLogonChallengeServer() error {
 	result := buf[cursor]
 	cursor++
 	if result != 0 {
-		return fmt.Errorf("%w: %v", ErrLoginFailed, loginResultMessage[result])
+		if errMsg, ok := loginResultMessage[result]; ok {
+			return fmt.Errorf("%w: %v", ErrLoginFailed, errMsg)
+		} else {
+			return fmt.Errorf("%w: unknown error %v", ErrLoginFailed, result)
+		}
 	}
 
 	w.serverPublicKey = buf[cursor : cursor+32]
@@ -263,7 +267,11 @@ func (w *wowClient) readAuthLogonProofServer() error {
 	result := buf[cursor]
 	cursor++
 	if result != 0 {
-		return fmt.Errorf("%w: %v", ErrLoginFailed, loginResultMessage[result])
+		if errMsg, ok := loginResultMessage[result]; ok {
+			return fmt.Errorf("%w: %v", ErrLoginFailed, errMsg)
+		} else {
+			return fmt.Errorf("%w: unknown error %v", ErrLoginFailed, result)
+		}
 	}
 	return nil
 }

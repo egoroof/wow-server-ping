@@ -7,19 +7,27 @@
 	"Realms": [
 		{
 			"Name": "Blackrock [PvP only]",
-			"Address": "145.239.161.30:8095"
+			"Address": "145.239.161.30:8095",
+			"ShortName": "Blackrock",
+			"ProxyName": "Main"
 		},
 		{
 			"Name": "Icecrown",
-			"Address": "145.239.161.30:8093"
+			"Address": "145.239.161.30:8093",
+			"ShortName": "Icecrown",
+			"ProxyName": "Main"
 		},
 		{
 			"Name": "Lordaeron",
-			"Address": "145.239.161.30:8091"
+			"Address": "145.239.161.30:8091",
+			"ShortName": "Lordaeron",
+			"ProxyName": "Main"
 		},
 		{
 			"Name": "Onyxia",
-			"Address": "145.239.161.30:8096"
+			"Address": "145.239.161.30:8096",
+			"ShortName": "Onyxia",
+			"ProxyName": "Main"
 		}
 	]
 }

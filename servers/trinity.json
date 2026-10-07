@@ -7,7 +7,9 @@
 	"Realms": [
 		{
 			"Name": "Trinity",
-			"Address": "127.0.0.1:8085"
+			"Address": "127.0.0.1:8085",
+			"ShortName": "Trinity",
+			"ProxyName": "Main"
 		}
 	]
 }

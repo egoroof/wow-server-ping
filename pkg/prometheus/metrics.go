@@ -27,31 +27,31 @@ func NewResponseMetrics() *ResponseMetrics {
 			name:       "wow_server_connect_time_ms",
 			help:       "WoW server connect time in ms",
 			typee:      "gauge",
-			labelNames: []string{"server"},
+			labelNames: []string{"config", "name", "address", "short_name", "proxy"},
 		},
 		handshakeTime: metric{
 			name:       "wow_server_handshake_time_ms",
 			help:       "WoW server handshake time in ms",
 			typee:      "gauge",
-			labelNames: []string{"server"},
+			labelNames: []string{"config", "name", "address", "short_name", "proxy"},
 		},
 		pingTime: metric{
 			name:       "wow_server_ping_time_ms",
 			help:       "WoW server ping time in ms",
 			typee:      "gauge",
-			labelNames: []string{"server"},
+			labelNames: []string{"config", "name", "address", "short_name", "proxy"},
 		},
 		timeouts: metric{
 			name:       "wow_server_timeout_count",
 			help:       "WoW server timeout count",
 			typee:      "counter",
-			labelNames: []string{"server", "type"},
+			labelNames: []string{"config", "name", "address", "short_name", "proxy", "type"},
 		},
 		errors: metric{
 			name:       "wow_server_error_count",
 			help:       "WoW server error count",
 			typee:      "counter",
-			labelNames: []string{"server"},
+			labelNames: []string{"config", "name", "address", "short_name", "proxy"},
 		},
 	}
 }
@@ -72,15 +72,29 @@ func (m *ResponseMetrics) ListenAndServe(port int) error {
 
 func (m *ResponseMetrics) Init(servers []*ping.Server) {
 	for _, server := range servers {
-		m.timeouts.setValue([]string{server.Name, typeConnectTimeout}, 0)
-		m.timeouts.setValue([]string{server.Name, typeHandshakeTimeout}, 0)
-		m.timeouts.setValue([]string{server.Name, typePingTimeout}, 0)
-		m.errors.setValue([]string{server.Name}, 0)
+		m.timeouts.setValue([]string{
+			server.ConfigName, server.Name, server.Address,
+			server.ShortName, server.ProxyName, typeConnectTimeout,
+		}, 0)
+		m.timeouts.setValue([]string{
+			server.ConfigName, server.Name, server.Address,
+			server.ShortName, server.ProxyName, typeHandshakeTimeout,
+		}, 0)
+		m.timeouts.setValue([]string{
+			server.ConfigName, server.Name, server.Address,
+			server.ShortName, server.ProxyName, typePingTimeout,
+		}, 0)
+		m.errors.setValue([]string{
+			server.ConfigName, server.Name, server.Address,
+			server.ShortName, server.ProxyName,
+		}, 0)
 	}
 }
 
 func (m *ResponseMetrics) Update(server *ping.Server, res *ping.PingResult) {
-	promKey := []string{server.Name}
+	promKey := []string{
+		server.ConfigName, server.Name, server.Address, server.ShortName, server.ProxyName,
+	}
 	if res.ConnectDuration == 0 {
 		m.connectTime.delete(promKey)
 	} else {

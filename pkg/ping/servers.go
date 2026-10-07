@@ -1,17 +1,25 @@
 package ping
 
-import "github.com/egoroof/wow-server-ping/pkg/wow"
+type Realm struct {
+	Name      string
+	Address   string
+	ShortName string
+	ProxyName string
+}
 
 type ServerConfig struct {
 	// domain or ip without port
 	Host    string
 	Port    string
 	HostIps []string
-	Realms  []wow.Realm
+	Realms  []Realm
 }
 
 type Server struct {
-	Name    string
-	Address string
-	IsAuth  bool
+	Name       string
+	Address    string
+	ShortName  string
+	ProxyName  string
+	ConfigName string
+	IsAuth     bool
 }

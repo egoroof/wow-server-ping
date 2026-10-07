@@ -33,7 +33,6 @@ Some popular server realm lists already included in the build:
 
 - WoW Circle
 - Warmane
-- EZ WoW
 
 If you are interested in these servers you don't need to extract realm list. You can skip this step.
 

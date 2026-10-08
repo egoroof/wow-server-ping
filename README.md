@@ -23,7 +23,7 @@ In the picture above there are four servers (`Fun`, `x1`, `x100`, `x4`). All of 
 
 ## Ping deviation
 
-If ping is not stable and changes fast - it's called ping deviation. Ping deviation is displayed as an asterisk symbol (`*`). If ping without deviation - number will be without asterisk. The greater the deviation, the more asterisks are added:
+If ping is not stable and changes fast - it's called ping deviation. Ping deviation is displayed as an asterisk symbol (`*`). If ping goes without deviation - the number will be without an asterisk. The greater the deviation, the more asterisks are added:
 
 ![console output with deviation](./images/deviation.png)
 

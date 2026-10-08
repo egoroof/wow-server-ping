@@ -5,21 +5,53 @@
 
 Ping tool for World of Warcraft 3.3.5a servers. Correctly measures ping to servers behind a proxy.
 
-![console usage](./images/console.png)
+## Simple example
 
-Definitions:
+A simple example of the output from the ping tool for Warmane server:
 
-- `Sent` - number of ping requests sent
-- `Conn` - mean connect time to WoW server in milliseconds
-- `Hand` - mean handshake time with WoW server in milliseconds
-- `Ping` - mean ping time to WoW server in milliseconds
-- `±` - mean absolute deviation of `Conn`, `Hand` and `Ping`
-- `T1` - timeouts during connection
-- `T2` - timeouts during handshake
-- `T3` - timeouts during ping
-- `E` - errors
+![warmane output](./images/warmane.png)
+
+In the picture above there is a time interval and ping to every server.
+
+## Example with proxy servers
+
+Example of console output for WoW Circle servers:
+
+![console output with proxies](./images/console.png)
+
+In the picture above there are four servers (`Fun`, `x1`, `x100`, `x4`). All of them have `Main` entry point and five proxies (`NSK`, `MSK`, `FIN`, `NL`, `DE`).
+
+## Ping deviation
+
+If ping is not stable and changes fast - it's called ping deviation. Ping deviation is displayed as an asterisk symbol (`*`). If ping without deviation - number will be without asterisk. The greater the deviation, the more asterisks are added:
+
+![console output with deviation](./images/deviation.png)
+
+## Timeouts
+
+If a network ping request takes too long to complete - it is aborted and marked as a timeout. Timeouts are displayed in parentheses as the letter T and a number - for example `(T2)`:
+
+![console output with timeout](./images/timeouts.png)
+
+Timeouts are divided into three types for ease of debugging:
+
+- `(T1)` - timeouts during connection
+- `(T2)` - timeouts during handshake
+- `(T3)` - timeouts during ping
 
 See [Ping process](#ping-process) for explanation about connection, handshake and ping.
+
+## Errors
+
+In addition to timeouts, errors may also occur. They are displayed as `(E)`. For example, if you disable internet access, it will look like this:
+
+![console output with errors](./images/errors.png)
+
+All errors are logging into `errors` folder and corresponding file with filename like `2026-10-08_14-39-49.txt`:
+
+```
+2026/10/08 14:53:40 WoW Circle 3.3.5a x1 dial tcp 87.228.58.62:11294: connectex: A socket operation was attempted to an unreachable network.
+```
 
 ## Usage
 
@@ -38,7 +70,7 @@ If you are interested in these servers you don't need to extract realm list. You
 
 This tool doesn't work with the Sirus server.
 
----
+### Realm list extraction
 
 You will need to extract realm list first. Wow servers can give you realm list only after login, so you will have to enter your username and password. This project has an utility, which logins to WoW server similar real WoW game client and save realm list to `servers` folder.
 

@@ -133,7 +133,7 @@ Some antivirus software can detect malware (false positive) in downloaded Window
 
 ## Prometheus metrics
 
-This tool can work as a [Prometheus](https://prometheus.io) metrics exporter and display graphics in [Grafana](https://grafana.com/oss/grafana/):
+This tool can work as a [Prometheus](https://prometheus.io) metrics exporter and display charts in [Grafana](https://grafana.com/oss/grafana/):
 
 ![grafana usage](./images/grafana.png)
 

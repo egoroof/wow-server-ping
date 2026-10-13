@@ -43,14 +43,14 @@ See [Ping process](#ping-process) for explanation about connection, handshake an
 
 ## Errors
 
-In addition to timeouts, errors may also occur. They are displayed as `(E)`. For example, if you disable internet access, it will look like this:
+In addition to timeouts, errors may also occur. They are displayed as `(E)`. For example if a server is down it may look like this:
 
-![console output with errors](./images/errors.png)
+![console output with errors](./images/server_down.png)
 
 All errors are logging into `errors` folder and corresponding file with filename like `2026-10-08_14-39-49.txt`:
 
 ```
-2026/10/08 14:53:40 WoW Circle 3.3.5a x1 dial tcp 87.228.58.62:11294: connectex: A socket operation was attempted to an unreachable network.
+2026/10/13 16:51:05 WoW Circle 3.3.5a x100 dial tcp 212.41.28.8:12742: connectex: No connection could be made because the target machine actively refused it.
 ```
 
 ## Usage

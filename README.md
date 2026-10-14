@@ -185,16 +185,14 @@ check_for_plugin_updates = false
 [metrics]
 enabled = false
 ```
-4. Run `grafana/bin/grafana.exe server`
+4. Run `grafana/bin/grafana.exe server`. Note there's `server` argument. Create a link or bat file for it
 5. Open http://localhost:3000 in a web broser - should be Grafana UI
 6. Enter login and password as `admin` / `admin`
 7. Change admin default password
-8. Open http://localhost:3000/connections/datasources and click `Add new data source` button
-9. Choose `Prometheus`
-10. Set up `Prometheus server URL` as `http://localhost:9090`
-11. Set up `Scrape interval` to `1s`
-12. Click `Save & test`
-13. Open http://localhost:3000/dashboard/import
-14. Copy https://raw.githubusercontent.com/egoroof/wow-server-ping/refs/heads/master/dashboard.json contents and import in Grafana
-15. Confirm dashboard name and Prometheus data source and click `Import`
-16. Now you should see your dashboard with charts and data. You can filter realms or change time range etc.
+8. Open http://localhost:3000/connections/datasources/new and choose `Prometheus`
+9. Set up `Prometheus server URL` as `http://localhost:9090`
+10. Set up `Scrape interval` to `1s`
+11. Click `Save & test`
+12. Copy [dashboard contents](https://raw.githubusercontent.com/egoroof/wow-server-ping/refs/heads/master/dashboard.json) and load in http://localhost:3000/dashboard/import
+13. Confirm dashboard name and Prometheus data source and click `Import`
+14. Now you should see your dashboard with charts and data. You can filter realms or change time range etc.

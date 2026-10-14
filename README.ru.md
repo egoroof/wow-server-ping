@@ -137,10 +137,12 @@ wow-ping.exe -filter "x4" wowcircle
 
 ![grafana usage](./images/grafana.png)
 
+### Настройка порта
+
 Выставите опцию `-port`:
 
 ```shell
 wow-ping.exe -port 8090 wowcircle
 ```
 
-Метрики будут доступны по адресу `http://localhost:8090/metrics`. Дальше вам нужно будет настроить Prometheus, чтобы он собирал эти метрики.
+Метрики будут доступны по адресу http://localhost:8090/metrics. Дальше вам нужно будет настроить Prometheus, чтобы он собирал эти метрики.

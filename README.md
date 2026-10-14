@@ -137,10 +137,64 @@ This tool can work as a [Prometheus](https://prometheus.io) metrics exporter and
 
 ![grafana usage](./images/grafana.png)
 
+### Port option
+
 Pass the `-port` option:
 
 ```shell
 wow-ping.exe -port 8090 wowcircle
 ```
 
-Metrics will be available at `http://localhost:8090/metrics`. Then you will need to setup Prometheus to grab this metrics.
+Metrics will be available at http://localhost:8090/metrics. Then you will need to setup Prometheus to grab this metrics.
+
+### Prometheus setup
+
+TLDR:
+
+1. [Download Prometheus](https://prometheus.io/download/)
+2. Unpack the archive
+3. Update config `prometheus.yml` section `scrape_configs` like this:
+```yml
+scrape_configs:
+  - job_name: "wow_ping"
+    scrape_interval: 1s
+    static_configs:
+      - targets: [ "localhost:8090" ]
+```
+4. Run `prometheus.exe`
+5. Check if http://localhost:9090 loads in a web browser - should be Prometheus UI
+
+### Grafana setup
+
+TLDR:
+
+1. [Download Grafana](https://grafana.com/grafana/download) - choose Grafana OSS (not Enterprise) and Standalone Binaries (not installer)
+2. Unpack the archive
+3. Create a new file `custom.ini` in `grafana/conf/` folder with contents:
+```ini
+[plugins]
+disable_plugins = grafana-advisor-app,grafana-exploretraces-app,grafana-lokiexplore-app,grafana-metricsdrilldown-app,grafana-pyroscope-app,elasticsearch,grafana-postgresql-datasource,grafana-pyroscope-datasource,influxdb,jaeger,loki,mssql,mysql,opentsdb,stackdriver,tempo,zipkin
+preinstall_disabled = true
+preinstall_auto_update = false
+
+[analytics]
+reporting_enabled = false
+check_for_updates = false
+check_for_plugin_updates = false
+
+[metrics]
+enabled = false
+```
+4. Run `grafana/bin/grafana.exe server`
+5. Open http://localhost:3000 in a web broser - should be Grafana UI
+6. Enter login and password as `admin` / `admin`
+7. Change admin default password
+8. Open http://localhost:3000/connections/datasources and click `Add new data source` button
+9. Choose `Prometheus`
+10. Set up `Prometheus server URL` as `http://localhost:9090`
+11. Set up `Scrape interval` to `1s`
+12. Click `Save & test`
+13. Open http://localhost:3000/dashboard/import
+14. Copy https://raw.githubusercontent.com/egoroof/wow-server-ping/refs/heads/master/dashboard.json contents and import in Grafana
+15. Confirm dashboard name and Prometheus data source and click `Import`
+16. Now you should see your dashboard with charts and data. You can filter realms or change time range etc.

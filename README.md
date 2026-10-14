@@ -186,7 +186,7 @@ check_for_plugin_updates = false
 enabled = false
 ```
 4. Run `grafana/bin/grafana.exe server`. Note there's `server` argument. Create a link or bat file for it
-5. Open http://localhost:3000 in a web broser - should be Grafana UI
+5. Open http://localhost:3000 in a web browser - should be Grafana UI
 6. Enter login and password as `admin` / `admin`
 7. Change admin default password
 8. Open http://localhost:3000/connections/datasources/new and choose `Prometheus`

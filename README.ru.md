@@ -146,3 +146,53 @@ wow-ping.exe -port 8090 wowcircle
 ```
 
 Метрики будут доступны по адресу http://localhost:8090/metrics. Дальше вам нужно будет настроить Prometheus, чтобы он собирал эти метрики.
+
+### Настройка Prometheus
+
+Вкратце:
+
+1. [Скачайте Prometheus](https://prometheus.io/download/)
+2. Распакуйте архив
+3. Обновите конфиг `prometheus.yml` секцию `scrape_configs` таким образом:
+```yml
+scrape_configs:
+  - job_name: "wow_ping"
+    scrape_interval: 1s
+    static_configs:
+      - targets: [ "localhost:8090" ]
+```
+4. Запустите `prometheus.exe`
+5. Проверьте, что http://localhost:9090 открывается в браузере - должен быть интерфейс Prometheus
+
+### Настройка Grafana
+
+Вкратце:
+
+1. [Скачайте Grafana](https://grafana.com/grafana/download) - выберите Grafana OSS (не Enterprise) и Standalone Binaries (не installer)
+2. Распакуйте архив
+3. Создайте новый файл `custom.ini` в папке `grafana/conf/` с содержимым:
+```ini
+[plugins]
+disable_plugins = grafana-advisor-app,grafana-exploretraces-app,grafana-lokiexplore-app,grafana-metricsdrilldown-app,grafana-pyroscope-app,elasticsearch,grafana-postgresql-datasource,grafana-pyroscope-datasource,influxdb,jaeger,loki,mssql,mysql,opentsdb,stackdriver,tempo,zipkin
+preinstall_disabled = true
+preinstall_auto_update = false
+
+[analytics]
+reporting_enabled = false
+check_for_updates = false
+check_for_plugin_updates = false
+
+[metrics]
+enabled = false
+```
+4. Запустите `grafana/bin/grafana.exe server`. Не потеряйте аргумент `server`. Создайте ссылку или bat файл для этого
+5. Откройте http://localhost:3000 в браузере - должен быть интерфейс Grafana
+6. Введите логин и пароль `admin` / `admin`
+7. Измените дефолтный пароль админа
+8. Откройте http://localhost:3000/connections/datasources/new и выберите `Prometheus`
+9. Выставите `Prometheus server URL` значение `http://localhost:9090`
+10. Выставите `Scrape interval` значение `1s`
+11. Нажмите `Save & test`
+12. Скопируйте [содержимое дэшборда](https://raw.githubusercontent.com/egoroof/wow-server-ping/refs/heads/master/dashboard.json) и загрузите в http://localhost:3000/dashboard/import
+13. Подтвердите название дэшборда и источник данных Prometheus и нажмите `Import`
+14. Теперь вы  должны увидеть ваши графики. Можете отфильтровать по игровым мирам или изменить временной промежуток и тому подобное.

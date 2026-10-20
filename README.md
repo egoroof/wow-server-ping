@@ -29,21 +29,23 @@ If ping is not stable and changes fast - it's called ping deviation. Ping deviat
 
 ## Timeouts
 
-If a network ping request takes too long to complete - it is aborted and marked as a timeout. Timeouts are displayed in parentheses as the letter T and a number - for example `(T2)`:
+If a network ping request takes too long to complete - it is aborted and marked as a timeout. Timeouts are displayed as the letter T and a number - for example `T2`:
 
 ![console output with timeout](./images/timeouts.png)
 
 Timeouts are divided into three types for ease of debugging:
 
-- `(T1)` - timeouts during connection
-- `(T2)` - timeouts during handshake
-- `(T3)` - timeouts during ping
+- `T1` - timeouts during connection
+- `T2` - timeouts during handshake
+- `T3` - timeouts during ping
+
+They can be displayed as a combination like `T1,T2` means both `T1` and `T2` happened.
 
 See [Ping process](#ping-process) for explanation about connection, handshake and ping.
 
 ## Errors
 
-In addition to timeouts, errors may also occur. They are displayed as `(E)`. For example if a server is down it may look like this:
+In addition to timeouts, errors may also occur. They are displayed as `E`. For example if a server is down it may look like this:
 
 ![console output with errors](./images/server_down.png)
 

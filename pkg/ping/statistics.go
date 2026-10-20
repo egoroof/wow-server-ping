@@ -246,19 +246,14 @@ func formatStats(stats *Statistics, useHandshake bool) string {
 		output = append(output, delayStr+madStr)
 	}
 
-	timeouts := []string{}
 	if stats.Timeouts1 > 0 {
-		timeouts = append(timeouts, "1")
+		output = append(output, "T1")
 	}
 	if stats.Timeouts2 > 0 {
-		timeouts = append(timeouts, "2")
+		output = append(output, "T2")
 	}
 	if stats.Timeouts3 > 0 {
-		timeouts = append(timeouts, "3")
-	}
-
-	if len(timeouts) > 0 {
-		output = append(output, "T"+strings.Join(timeouts, ","))
+		output = append(output, "T3")
 	}
 	if stats.Errors > 0 {
 		output = append(output, "E")

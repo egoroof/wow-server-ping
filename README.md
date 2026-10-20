@@ -29,7 +29,7 @@ If ping is not stable and changes fast - it's called ping deviation. Ping deviat
 
 ## Timeouts
 
-If a network ping request takes too long to complete - it is aborted and marked as a timeout. Timeouts are displayed as the letter T and a number - for example `T2`:
+If a network ping request takes too long to complete - it is aborted and marked as a timeout. Timeouts are displayed as the letter T and a number - for example `T1`:
 
 ![console output with timeout](./images/timeouts.png)
 

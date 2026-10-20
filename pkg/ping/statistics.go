@@ -150,25 +150,29 @@ func (s *Store) Print() {
 
 		pingSumA := 0
 		pingSumB := 0
+		aLen := 0
+		bLen := 0
 		for _, name := range s.shortNames {
-			if statsA, ok := proxyGroupA[name]; ok {
+			if statsA, ok := proxyGroupA[name]; ok && len(statsA.PingDurations) > 0 {
 				pingSumA += statsA.PingMean
+				aLen++
 			}
-			if statsB, ok := proxyGroupB[name]; ok {
+			if statsB, ok := proxyGroupB[name]; ok && len(statsB.PingDurations) > 0 {
 				pingSumB += statsB.PingMean
+				bLen++
 			}
 		}
 		// every server from the group doesn't have ping (cause timeouts or errors)
 		// so move it down in the list
-		if pingSumA == 0 {
+		if aLen == 0 {
 			return 1
 		}
-		if pingSumB == 0 {
+		if bLen == 0 {
 			return -1
 		}
 
-		pingGroupA := pingSumA / len(proxyGroupA)
-		pingGroupB := pingSumB / len(proxyGroupB)
+		pingGroupA := pingSumA / aLen
+		pingGroupB := pingSumB / bLen
 
 		return pingGroupA - pingGroupB
 	})

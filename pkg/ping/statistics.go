@@ -263,5 +263,10 @@ func formatStats(stats *Statistics, useHandshake bool) string {
 		output = append(output, "E")
 	}
 
+	// no measurment results during the time period
+	if len(output) == 0 {
+		return "-"
+	}
+
 	return strings.Join(output, ",")
 }

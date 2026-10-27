@@ -188,8 +188,11 @@ func (w *wowClient) readAuthLogonChallengeServer() error {
 	protocolVersion := buf[cursor]
 	cursor++
 
-	if opcode != 0 || protocolVersion != 0 {
-		return fmt.Errorf("invalid header")
+	if opcode != 0 {
+		return fmt.Errorf("invalid opcode %v", opcode)
+	}
+	if protocolVersion != 0 {
+		return fmt.Errorf("invalid protocol version %v", protocolVersion)
 	}
 	if bytesRead >= len(buf) {
 		return fmt.Errorf("body too big")
@@ -258,7 +261,7 @@ func (w *wowClient) readAuthLogonProofServer() error {
 	opcode := buf[0]
 	cursor := 1
 	if opcode != 1 {
-		return fmt.Errorf("invalid header")
+		return fmt.Errorf("invalid opcode %v", opcode)
 	}
 	if bytesRead >= len(buf) {
 		return fmt.Errorf("body too big")
@@ -288,7 +291,7 @@ func (w *wowClient) readRealmListServer() error {
 	cursor := 1
 
 	if opcode != 0x10 {
-		return fmt.Errorf("invalid header")
+		return fmt.Errorf("invalid opcode %v", opcode)
 	}
 	if bytesRead >= len(buf) {
 		return fmt.Errorf("body too big")

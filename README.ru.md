@@ -49,10 +49,10 @@
 
 ![console output with errors](./images/server_down.png)
 
-Все ошибки логируются в папку `errors` и соотвествующий файл с названием вроде `2026-10-08_14-39-49.txt`:
+Все ошибки логируются в папку `errors` и соотвествующий файл с названием вроде `2026-10-28_11-08-33.txt`:
 
 ```
-2026/10/13 16:51:05 WoW Circle 3.3.5a x100 dial tcp 212.41.28.8:12742: connectex: No connection could be made because the target machine actively refused it.
+2026/10/28 11:08:35 WoW Circle 3.3.5a x100 dial tcp 212.41.28.8:12742: connectex: No connection could be made because the target machine actively refused it.
 ```
 
 ## Использование

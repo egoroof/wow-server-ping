@@ -9,7 +9,7 @@ import (
 )
 
 type ErrorLogger struct {
-	// key := server.Name + server.Group
+	// key := server.Name
 	lastErrorByServer map[string]error
 
 	logger *log.Logger

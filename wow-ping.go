@@ -62,7 +62,7 @@ func recordMetrics(
 
 	for now := range time.Tick(*STATS_INTERVAL) {
 		fmt.Printf(
-			"\n%v to %v\n",
+			"\n%v -> %v\n",
 			statsLogTime.Format(time.TimeOnly),
 			now.Format(time.TimeOnly),
 		)

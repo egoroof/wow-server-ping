@@ -1,7 +1,5 @@
 {
-	"Host": "127.0.0.1",
-	"Port": "3724",
-	"HostIps": [
+	"RealmList": [
 		"127.0.0.1"
 	],
 	"Realms": [

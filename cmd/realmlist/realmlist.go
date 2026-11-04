@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"errors"
@@ -8,7 +9,6 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"net"
-	"net/netip"
 	"os"
 	"slices"
 	"strings"
@@ -31,16 +31,10 @@ func main() {
 	flag.Parse()
 
 	config := flag.Arg(0)
-	hostPort := flag.Arg(1)
-	user := flag.Arg(2)
 
 	if config == "" {
 		fmt.Print("Enter config name (where to save result): ")
-		_, err := fmt.Scanln(&config)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+		config = readLine()
 	} else {
 		fmt.Printf("Config: %v\n", config)
 	}
@@ -53,80 +47,62 @@ func main() {
 		os.Exit(1)
 	}
 
-	if oldConfig.Host != "" {
+	if len(oldConfig.RealmList) > 0 {
 		fmt.Print("Config already exist. Overwrite? (y/N) ")
 
-		overwrite := ""
-		_, err := fmt.Scanln(&overwrite)
-
-		if err != nil || overwrite != "y" {
+		if readLine() != "y" {
 			fmt.Println("You should enter 'y' to overwite config or choose another config name.")
 			os.Exit(0)
 		}
 	}
 
-	if hostPort == "" {
-		if oldConfig.Host != "" && oldConfig.Port != "" {
-			fmt.Printf("Use existing host %v:%v? (y/N) ", oldConfig.Host, oldConfig.Port)
+	hostPortList := []string{}
+	enterRealmlist := false
 
-			useExistingHost := ""
-			_, err := fmt.Scanln(&useExistingHost)
-			if err == nil && useExistingHost == "y" {
-				hostPort = oldConfig.Host + ":" + oldConfig.Port
-			} else {
-				fmt.Print("Enter host: ")
-				_, err := fmt.Scanln(&hostPort)
-				if err != nil {
-					fmt.Println(err)
-					os.Exit(1)
-				}
-			}
+	if len(oldConfig.RealmList) > 0 {
+		fmt.Printf("Use existing realmlist %v? (y/N) ", strings.Join(oldConfig.RealmList, ", "))
+
+		if readLine() == "y" {
+			hostPortList = oldConfig.RealmList
 		} else {
-			fmt.Print("Enter host: ")
-			_, err := fmt.Scanln(&hostPort)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
+			enterRealmlist = true
 		}
 	} else {
-		fmt.Printf("Host: %v\n", hostPort)
+		enterRealmlist = true
 	}
 
-	host := hostPort
-	port := defaultAuthPort
-	if strings.Contains(hostPort, ":") {
-		host, port, err = net.SplitHostPort(hostPort)
+	if enterRealmlist {
+		fmt.Print("Enter realmlist: ")
+		hostPortList = strings.Split(readLine(), ",")
+		for i, elem := range hostPortList {
+			hostPortList[i] = strings.TrimSpace(elem)
+		}
+	}
+
+	var addressList []string
+	for _, hostPort := range hostPortList {
+		host, port, err := splitHostPort(hostPort, defaultAuthPort)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-	}
 
-	var ips []string
-	if _, err := netip.ParseAddr(host); err == nil {
-		// host is IP
-		ips = []string{host}
-	} else {
 		fmt.Printf("Resolving %v\n", host)
-		ips, err = resolver.LookupHost(host, *TIMEOUT)
+		ips, err := resolver.LookupHost(host, *TIMEOUT)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 		fmt.Printf("Resolved: %v\n", strings.Join(ips, ", "))
+
+		for _, ip := range ips {
+			address := fmt.Sprintf("%v:%v", ip, port)
+			addressList = append(addressList, address)
+		}
 	}
 
-	if user == "" {
-		fmt.Print("Enter username: ")
-		_, err := fmt.Scanln(&user)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-	} else {
-		fmt.Printf("Username: %v\n", user)
-	}
+	fmt.Print("Enter username: ")
+	user := readLine()
 
 	fmt.Print("Enter password: ")
 	password, err := term.ReadPassword(int(syscall.Stdin))
@@ -136,10 +112,10 @@ func main() {
 	}
 	fmt.Println("")
 
-	randomIp := ips[rand.IntN(len(ips))]
-	address := fmt.Sprintf("%v:%v", randomIp, port)
-	client := wow.NewWowClient(address, user, string(password), *TIMEOUT)
+	randomAddress := addressList[rand.IntN(len(addressList))]
+	client := wow.NewWowClient(randomAddress, user, string(password), *TIMEOUT)
 
+	fmt.Printf("Connecting to %v\n", randomAddress)
 	err = client.Login("")
 	if err != nil {
 		if errors.Is(err, wow.Err2faRequired) {
@@ -178,19 +154,13 @@ func main() {
 
 	configChanged := false
 
-	if oldConfig.Host != "" && host != oldConfig.Host {
+	if len(oldConfig.RealmList) > 0 && !slices.Equal(oldConfig.RealmList, hostPortList) {
 		configChanged = true
-		fmt.Printf("Host updated. Was %v, now %v\n", oldConfig.Host, host)
-	}
-
-	if oldConfig.Port != "" && port != oldConfig.Port {
-		configChanged = true
-		fmt.Printf("Port updated. Was %v, now %v\n", oldConfig.Port, port)
-	}
-
-	if len(oldConfig.HostIps) > 0 && !slices.Equal(oldConfig.HostIps, ips) {
-		configChanged = true
-		fmt.Printf("HostIps updated. Was %v, now %v\n", oldConfig.HostIps, ips)
+		fmt.Printf(
+			"RealmList updated. Was %v, now %v\n",
+			strings.Join(oldConfig.RealmList, ", "),
+			strings.Join(hostPortList, ", "),
+		)
 	}
 
 	var configRealms []ping.Realm
@@ -256,10 +226,8 @@ func main() {
 	}
 
 	serverConfig := ping.ServerConfig{
-		Host:    host,
-		Port:    port,
-		HostIps: ips,
-		Realms:  configRealms,
+		RealmList: hostPortList,
+		Realms:    configRealms,
 	}
 	err = writeConfig(filename, &serverConfig)
 	if err != nil {
@@ -267,6 +235,20 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Printf("Saved to %v\n", filename)
+}
+
+func splitHostPort(hostport string, fallbackPort string) (string, string, error) {
+	if !strings.Contains(hostport, ":") {
+		return hostport, fallbackPort, nil
+	}
+
+	return net.SplitHostPort(hostport)
+}
+
+func readLine() string {
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	return scanner.Text()
 }
 
 func writeConfig(filename string, config *ping.ServerConfig) error {

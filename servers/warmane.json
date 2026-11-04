@@ -1,8 +1,6 @@
 {
-	"Host": "logon.warmane.com",
-	"Port": "3724",
-	"HostIps": [
-		"62.138.7.219"
+	"RealmList": [
+		"logon.warmane.com"
 	],
 	"Realms": [
 		{

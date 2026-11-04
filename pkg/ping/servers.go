@@ -8,11 +8,11 @@ type Realm struct {
 }
 
 type ServerConfig struct {
-	// domain or ip without port
-	Host    string
-	Port    string
-	HostIps []string
-	Realms  []Realm
+	// auth server domains or ips optionally with port
+	RealmList []string
+
+	// game servers
+	Realms []Realm
 }
 
 type Server struct {

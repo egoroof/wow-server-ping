@@ -4,9 +4,10 @@ import (
 	"encoding/json/v2"
 	"flag"
 	"fmt"
-	"net/netip"
+	"net"
 	"os"
 	"regexp"
+	"strings"
 	"text/tabwriter"
 	"time"
 
@@ -25,6 +26,7 @@ var FILTER = flag.String("filter", "", "regexp for filter servers by name")
 
 const hostLookupTimeout = time.Second * 10
 const errorsDir = "errors"
+const defaultAuthPort = "3724"
 
 func recordMetrics(
 	servers []*ping.Server,
@@ -141,35 +143,38 @@ func main() {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	var allServers []*ping.Server
 	if *PING_AUTH {
-		var authIps []string
-		if _, err := netip.ParseAddr(config.Host); err == nil {
-			// host is IP
-			authIps = []string{config.Host}
-		} else {
-			fmt.Printf("Resolving %v\n", config.Host)
-			authIps, err = resolver.LookupHost(config.Host, hostLookupTimeout)
+		authNumber := 0
+		for _, realmlist := range config.RealmList {
+			host, port, err := splitHostPort(realmlist, defaultAuthPort)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+
+			fmt.Printf("Resolving %v\n", host)
+			authIps, err := resolver.LookupHost(host, hostLookupTimeout)
 
 			if err != nil {
-				authIps = config.HostIps
-				fmt.Println(err)
-				fmt.Println("Unable to resolve host, fall back to config HostIps")
+				fmt.Println("Unable to resolve host:", err)
 			}
-		}
 
-		for i, ip := range authIps {
-			name := fmt.Sprintf("Auth%v", i+1)
-			address := fmt.Sprintf("%v:%v", ip, config.Port)
+			for _, ip := range authIps {
+				authNumber++
+				name := fmt.Sprintf("Auth%v %v", authNumber, host)
+				shortName := fmt.Sprintf("Auth%v", authNumber)
+				address := fmt.Sprintf("%v:%v", ip, port)
 
-			fmt.Fprintf(w, "%v\t%v\n", name, address)
+				fmt.Fprintf(w, "%v\t%v\n", name, address)
 
-			allServers = append(allServers, &ping.Server{
-				Name:       name,
-				Address:    address,
-				ShortName:  name,
-				ProxyName:  "Main",
-				ConfigName: configName,
-				IsAuth:     true,
-			})
+				allServers = append(allServers, &ping.Server{
+					Name:       name,
+					Address:    address,
+					ShortName:  shortName,
+					ProxyName:  "Main",
+					ConfigName: configName,
+					IsAuth:     true,
+				})
+			}
 		}
 	}
 
@@ -205,4 +210,12 @@ func main() {
 		err := prom.ListenAndServe(*LISTEN_PORT)
 		fmt.Println(err)
 	}
+}
+
+func splitHostPort(hostport string, fallbackPort string) (string, string, error) {
+	if !strings.Contains(hostport, ":") {
+		return hostport, fallbackPort, nil
+	}
+
+	return net.SplitHostPort(hostport)
 }

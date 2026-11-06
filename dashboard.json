@@ -3,7 +3,7 @@
   "kind": "Dashboard",
   "metadata": {
     "name": "adpls9v",
-    "generation": 10,
+    "generation": 11,
     "creationTimestamp": "2026-08-07T05:35:43Z",
     "labels": {},
     "annotations": {}
@@ -64,7 +64,7 @@
                       },
                       "labels": {
                         "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prom-local"
+                        "grafana.app/export-datasource-name": "local"
                       }
                     },
                     "refId": "A",
@@ -196,7 +196,7 @@
                       },
                       "labels": {
                         "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prom-local"
+                        "grafana.app/export-datasource-name": "local"
                       }
                     },
                     "refId": "A",
@@ -326,7 +326,7 @@
                       },
                       "labels": {
                         "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prom-local"
+                        "grafana.app/export-datasource-name": "local"
                       }
                     },
                     "refId": "A",
@@ -458,7 +458,7 @@
                       },
                       "labels": {
                         "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prom-local"
+                        "grafana.app/export-datasource-name": "local"
                       }
                     },
                     "refId": "A",
@@ -590,7 +590,7 @@
                       },
                       "labels": {
                         "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prom-local"
+                        "grafana.app/export-datasource-name": "local"
                       }
                     },
                     "refId": "A",
@@ -720,7 +720,7 @@
                       },
                       "labels": {
                         "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prom-local"
+                        "grafana.app/export-datasource-name": "local"
                       }
                     },
                     "refId": "A",
@@ -852,7 +852,7 @@
                       },
                       "labels": {
                         "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prom-local"
+                        "grafana.app/export-datasource-name": "local"
                       }
                     },
                     "refId": "A",
@@ -1174,6 +1174,9 @@
             "kind": "DataQuery",
             "group": "prometheus",
             "version": "v0",
+            "datasource": {
+              "name": "${datasource}"
+            },
             "spec": {
               "qryType": 1,
               "query": "label_values(wow_server_error_count,config)",
@@ -1181,7 +1184,7 @@
             },
             "labels": {
               "grafana.app/export-label": "prometheus-1",
-              "grafana.app/export-datasource-name": "prom-local"
+              "grafana.app/export-datasource-name": "local"
             }
           },
           "regex": "",
@@ -1210,6 +1213,9 @@
             "kind": "DataQuery",
             "group": "prometheus",
             "version": "v0",
+            "datasource": {
+              "name": "${datasource}"
+            },
             "spec": {
               "qryType": 1,
               "query": "label_values(wow_server_error_count,short_name)",
@@ -1217,7 +1223,7 @@
             },
             "labels": {
               "grafana.app/export-label": "prometheus-1",
-              "grafana.app/export-datasource-name": "prom-local"
+              "grafana.app/export-datasource-name": "local"
             }
           },
           "regex": "",
@@ -1246,6 +1252,9 @@
             "kind": "DataQuery",
             "group": "prometheus",
             "version": "v0",
+            "datasource": {
+              "name": "${datasource}"
+            },
             "spec": {
               "qryType": 1,
               "query": "label_values(wow_server_error_count,proxy)",
@@ -1253,7 +1262,7 @@
             },
             "labels": {
               "grafana.app/export-label": "prometheus-1",
-              "grafana.app/export-datasource-name": "prom-local"
+              "grafana.app/export-datasource-name": "local"
             }
           },
           "regex": "",

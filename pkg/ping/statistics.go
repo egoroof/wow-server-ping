@@ -192,15 +192,20 @@ func (s *Store) Print() {
 		fmt.Fprintf(s.writer, "\n\n")
 	}
 
+	if len(s.proxyNames) > 1 {
+		fmt.Fprintf(s.writer, "\t")
+	}
 	for _, name := range s.shortNames {
-		fmt.Fprintf(s.writer, "\t%v", name)
+		fmt.Fprintf(s.writer, "%v\t", name)
 	}
 	fmt.Fprintf(s.writer, "\n")
 
 	for _, proxy := range s.proxyNames {
-		fmt.Fprintf(s.writer, "%v", proxy)
+		if len(s.proxyNames) > 1 {
+			fmt.Fprintf(s.writer, "%v\t", proxy)
+		}
 		for _, name := range s.shortNames {
-			fmt.Fprintf(s.writer, "\t%v", formatStats(realmStats[proxy][name], false))
+			fmt.Fprintf(s.writer, "%v\t", formatStats(realmStats[proxy][name], false))
 		}
 		fmt.Fprintf(s.writer, "\n")
 	}

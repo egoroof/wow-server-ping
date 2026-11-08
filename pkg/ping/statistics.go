@@ -48,7 +48,7 @@ type Store struct {
 func NewStatsStore() *Store {
 	return &Store{
 		stats:  make(map[string]*Statistics),
-		writer: tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0),
+		writer: tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0),
 	}
 }
 

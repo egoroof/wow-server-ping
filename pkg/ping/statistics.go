@@ -183,11 +183,11 @@ func (s *Store) Print() {
 		})
 
 		for _, stats := range authStats {
-			fmt.Fprintf(s.writer, "\t%v", stats.Server.ShortName)
+			fmt.Fprintf(s.writer, "%v\t", stats.Server.ShortName)
 		}
-		fmt.Fprintf(s.writer, "\nMain")
+		fmt.Fprintf(s.writer, "\n")
 		for _, stats := range authStats {
-			fmt.Fprintf(s.writer, "\t%v", formatStats(stats, true))
+			fmt.Fprintf(s.writer, "%v\t", formatStats(stats, true))
 		}
 		fmt.Fprintf(s.writer, "\n\n")
 	}
